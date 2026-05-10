@@ -516,7 +516,7 @@ function fileToBase64(file){
     const img=new Image();
     const url=URL.createObjectURL(file);
     img.onload=()=>{
-      const MAX=1024;
+      const MAX=600;
       let w=img.width,h=img.height;
       if(w>MAX||h>MAX){
         if(w>h){h=Math.round(h*MAX/w);w=MAX;}
@@ -526,7 +526,8 @@ function fileToBase64(file){
       canvas.width=w;canvas.height=h;
       canvas.getContext('2d').drawImage(img,0,0,w,h);
       URL.revokeObjectURL(url);
-      const b64=canvas.toDataURL('image/jpeg',0.85).split(',')[1];
+      const b64=canvas.toDataURL('image/jpeg',0.60).split(',')[1];
+      console.log('Image size KB:', Math.round(b64.length*0.75/1024));
       res(b64);
     };
     img.onerror=()=>rej(new Error('Error leyendo imagen'));
