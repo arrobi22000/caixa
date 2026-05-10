@@ -465,6 +465,10 @@ Si un valor no aparece en el ticket, ponlo a 0.`}
     });
 
     const data=await response.json();
+    if(!data||!data.content){
+      const errMsg=(data&&data.error)?JSON.stringify(data.error):'Respuesta vacía';
+      throw new Error(errMsg);
+    }
     const text=data.content.map(i=>i.text||'').join('');
     const clean=text.replace(/```json|```/g,'').trim();
     scanData=JSON.parse(clean);
