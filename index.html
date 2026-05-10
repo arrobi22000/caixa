@@ -189,7 +189,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
       </div>
 
       <!-- PHOTO SCAN -->
-      <input type="file" id="file-input" accept="image/*" capture="environment" onchange="handlePhoto(event)">
+      <input type="file" id="file-input" accept="image/*" onchange="handlePhoto(event)">
       <button class="scan-btn" id="scan-btn" onclick="document.getElementById('file-input').click()">
         📷 Escanear ticket con IA
       </button>
