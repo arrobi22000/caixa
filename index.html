@@ -250,12 +250,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
         </div>
       </div>
 
-      <div class="yokii-row">
-        <div>
-          <div class="yokii-label">⭐ Yokii / Noche</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">Ventes partenaires</div>
+      <div class="field-group" style="border-color:rgba(124,106,255,.3);background:rgba(124,106,255,.04)">
+        <div class="field-row">
+          <span class="field-icon">⭐</span>
+          <span class="field-label" style="color:var(--accent2)">Yokii</span>
+          <input class="field-input" type="number" inputmode="decimal" placeholder="0.00" id="f-yokii" oninput="updatePreview()" style="color:var(--accent2)">
+          <span class="field-suffix">€</span>
         </div>
-        <input class="yokii-input" type="number" inputmode="decimal" placeholder="0" id="f-yokii" oninput="updatePreview()">
+        <div class="field-row">
+          <span class="field-icon">🌙</span>
+          <span class="field-label" style="color:var(--accent2)">Noche</span>
+          <input class="field-input" type="number" inputmode="decimal" placeholder="0.00" id="f-noche" oninput="updatePreview()" style="color:var(--accent2)">
+          <span class="field-suffix">€</span>
+        </div>
       </div>
 
       <div class="versement-row">
@@ -393,12 +400,12 @@ function v(id){return parseFloat(document.getElementById(id).value)||0}
 function fmt(n){return n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 
 function updatePreview(){
-  const cb=v('f-cb'),liq=v('f-liq'),cheq=v('f-cheq'),yokii=v('f-yokii');
+  const cb=v('f-cb'),liq=v('f-liq'),cheq=v('f-cheq'),yokii=v('f-yokii'),noche=v('f-noche');
   const total=cb+liq+cheq;
   document.getElementById('total-preview').textContent=fmt(total);
   document.getElementById('prev-cb').textContent='€'+Math.round(cb);
   document.getElementById('prev-liq').textContent='€'+Math.round(liq);
-  document.getElementById('prev-yokii').textContent='€'+Math.round(yokii);
+  document.getElementById('prev-yokii').textContent='€'+Math.round(yokii+noche);
   const sum=cb+liq+0.001;
   document.getElementById('bar-cb').style.flex=cb/sum;
   document.getElementById('bar-liq').style.flex=liq/sum;
@@ -425,7 +432,7 @@ async function handlePhoto(event){
     if(!apiKey){showToast('⚠️ Añade tu clave API en la pestaña Email');overlay.classList.remove('active');btn.classList.remove('scanning');btn.innerHTML='📷 Escanear ticket con IA';event.target.value='';return}
     const response=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','anthropic-beta':'pdfs-2024-09-25'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:1000,
@@ -513,7 +520,7 @@ function fileToBase64(file){
 
 // ---- ENTRY CRUD ----
 function submitEntry(){
-  const cb=v('f-cb'),liq=v('f-liq'),cheq=v('f-cheq'),yokii=v('f-yokii');
+  const cb=v('f-cb'),liq=v('f-liq'),cheq=v('f-cheq'),yokii=v('f-yokii'),noche=v('f-noche');
   const vch=v('f-vch'),vesp=v('f-vesp');
   const note=document.getElementById('f-note').value.trim();
   const dateVal=document.getElementById('f-date').value||new Date().toISOString().slice(0,10);
@@ -524,8 +531,8 @@ function submitEntry(){
     id:editingId||Date.now().toString(),
     date:dateVal,jour:d.getDate(),mois:dateVal.slice(0,7),
     magasin:currentStore,cb,liquide:liq,cheque:cheq,
-    recettes,yokii,versement_cheq:vch,versement_esp:vesp,
-    note,total:recettes+yokii,ts:new Date().toISOString()
+    recettes,yokii,noche,versement_cheq:vch,versement_esp:vesp,
+    note,total:recettes+yokii+noche,ts:new Date().toISOString()
   };
   if(editingId){
     const idx=entries.findIndex(e=>e.id===editingId);
@@ -541,7 +548,7 @@ function submitEntry(){
 
 function resetForm(){
   editingId=null;
-  ['f-cb','f-liq','f-cheq','f-yokii','f-vch','f-vesp'].forEach(id=>document.getElementById(id).value='');
+  ['f-cb','f-liq','f-cheq','f-yokii','f-noche','f-vch','f-vesp'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-note').value='';
   document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
   currentStore='BOUTIQUE DE LA PLAGE';
@@ -566,6 +573,7 @@ function editEntry(id){
   document.getElementById('f-liq').value=e.liquide||'';
   document.getElementById('f-cheq').value=e.cheque||'';
   document.getElementById('f-yokii').value=e.yokii||'';
+  document.getElementById('f-noche').value=e.noche||'';
   document.getElementById('f-vch').value=e.versement_cheq||'';
   document.getElementById('f-vesp').value=e.versement_esp||'';
   document.getElementById('f-note').value=e.note||'';
@@ -743,11 +751,11 @@ function updateExportStats(){
 
 function exportCSV(){
   if(entries.length===0){alert('Aucune donnée à exporter.');return}
-  const headers=['JOUR','MOIS','MAGASIN','LIQUIDE','C.B','CHEQUE','RECETTES','YOKII','VERSEMENT_CHEQ','VERSEMENT_ESP','LIBELLE','TOTAL'];
+  const headers=['JOUR','MOIS','MAGASIN','LIQUIDE','C.B','CHEQUE','RECETTES','YOKII','NOCHE','VERSEMENT_CHEQ','VERSEMENT_ESP','LIBELLE','TOTAL'];
   const rows=[...entries].sort((a,b)=>a.date.localeCompare(b.date)).map(e=>[
     e.jour,e.mois,e.magasin,
     (e.liquide||0).toFixed(2),(e.cb||0).toFixed(2),(e.cheque||0).toFixed(2),(e.recettes||0).toFixed(2),
-    (e.yokii||0).toFixed(2),(e.versement_cheq||0).toFixed(2),(e.versement_esp||0).toFixed(2),
+    (e.yokii||0).toFixed(2),(e.noche||0).toFixed(2),(e.versement_cheq||0).toFixed(2),(e.versement_esp||0).toFixed(2),
     e.note||'',e.total.toFixed(2)
   ].join(';'));
   const csv=[headers.join(';'),...rows].join('\n');
