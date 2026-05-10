@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caixa">
+<meta name="theme-color" content="#0a0a0f">
+<title>Caixa</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--border:#2a2a38;
+  --accent:#e8ff47;--accent2:#7c6aff;--text:#f0f0f8;--muted:#6b6b80;
+  --danger:#ff5c5c;--green:#47ffb0;
+  --font-head:'Syne',sans-serif;--font-mono:'DM Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-height:100dvh;overflow-x:hidden;padding-top:env(safe-area-inset-top)}
+.phone{max-width:430px;margin:0 auto;min-height:100dvh;background:var(--bg);display:flex;flex-direction:column}
+
+.statusbar{display:flex;justify-content:space-between;align-items:center;padding:10px 20px 6px;font-size:12px;color:var(--muted)}
+.statusbar .time{font-weight:500;color:var(--text);font-size:13px}
+.battery{width:22px;height:11px;border:1.5px solid var(--muted);border-radius:2px;position:relative}
+.battery::after{content:'';position:absolute;right:-4px;top:2px;width:3px;height:5px;background:var(--muted);border-radius:0 1px 1px 0}
+.battery-fill{height:100%;width:75%;background:var(--green);border-radius:1px}
+
+.header{padding:14px 20px 12px;border-bottom:1px solid var(--border)}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.app-name{font-family:var(--font-head);font-size:22px;font-weight:800;letter-spacing:-.02em}
+.app-name span{color:var(--accent)}
+.date-badge{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--muted)}
+.store-tabs{display:flex;gap:6px;margin-top:12px;overflow-x:auto;padding-bottom:2px}
+.store-tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--font-mono);border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab.active{background:var(--accent);color:#0a0a0f;border-color:var(--accent);font-weight:500}
+
+.content{flex:1;padding:16px 20px;overflow-y:auto;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+.view{display:none}.view.active{display:block}
+.section-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+
+.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px;position:relative;overflow:hidden}
+.summary-card::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:radial-gradient(circle,rgba(232,255,71,.08) 0%,transparent 70%);border-radius:50%}
+.summary-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.summary-total{font-family:var(--font-head);font-size:36px;font-weight:800;color:var(--accent);letter-spacing:-.02em}
+.summary-total .currency{font-size:18px;opacity:.7;margin-right:2px}
+.summary-row{display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.summary-item{text-align:center}
+.summary-item .val{font-size:15px;font-weight:500}
+.summary-item .lbl{font-size:10px;color:var(--muted);margin-top:2px}
+.payment-bar{display:flex;gap:2px;margin-top:14px;height:6px;border-radius:3px;overflow:hidden}
+.bar-cb{background:var(--accent2);transition:flex .4s}
+.bar-liq{background:var(--accent);transition:flex .4s}
+.bar-legend{display:flex;gap:12px;margin-top:6px;font-size:10px;color:var(--muted)}
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
+
+.date-row{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.date-row label{font-size:12px;color:var(--muted)}
+.date-row input[type=date]{background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:13px;color-scheme:dark}
+
+.field-group{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px}
+.field-row{display:flex;align-items:center;padding:0 14px;border-bottom:1px solid var(--border)}
+.field-row:last-child{border-bottom:none}
+.field-icon{font-size:16px;margin-right:10px;width:20px;text-align:center;flex-shrink:0}
+.field-label{font-size:11px;color:var(--muted);width:90px;flex-shrink:0;padding:14px 0}
+.field-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:15px;padding:14px 0 14px 10px;text-align:right}
+.field-input::placeholder{color:var(--border)}
+.field-input:focus{color:var(--accent)}
+.field-suffix{font-size:13px;color:var(--muted);margin-left:4px;padding:14px 0}
+
+.yokii-row{background:var(--surface2);border:1px solid rgba(124,106,255,.3);border-radius:14px;padding:14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.yokii-label{font-size:12px;color:var(--accent2)}
+.yokii-input{background:transparent;border:none;outline:none;color:var(--accent2);font-family:var(--font-mono);font-size:18px;font-weight:500;width:100px;text-align:right}
+
+.versement-row{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px}
+.versement-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vers-field{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.vers-field .lbl{font-size:10px;color:var(--muted);margin-bottom:4px}
+.vers-field input{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:14px}
+.vers-field input:focus{color:var(--accent)}
+
+.notes-field{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px}
+.notes-field textarea{width:100%;background:transparent;border:none;outline:none;resize:none;color:var(--text);font-family:var(--font-mono);font-size:13px;line-height:1.6;min-height:56px}
+.notes-field textarea::placeholder{color:var(--border)}
+
+.btn-submit{width:100%;padding:16px;border-radius:14px;border:none;background:var(--accent);color:#0a0a0f;font-family:var(--font-head);font-size:16px;font-weight:800;letter-spacing:.02em;cursor:pointer;transition:transform .1s}
+.btn-submit:active{transform:scale(.98)}
+.btn-cancel{width:100%;padding:13px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-mono);font-size:13px;cursor:pointer;margin-top:8px}
+
+.edit-banner{background:rgba(124,106,255,.12);border:1px solid rgba(124,106,255,.4);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--accent2)}
+
+.history-section{margin-top:24px}
+.entry-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;animation:slideIn .3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.entry-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.entry-info{flex:1;min-width:0}
+.entry-store{font-size:10px;color:var(--muted);margin-bottom:2px}
+.entry-breakdown{font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry-amount{font-family:var(--font-head);font-size:17px;font-weight:700;color:var(--accent)}
+.btn-edit{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--text);cursor:pointer}
+.btn-del{background:transparent;border:1px solid rgba(255,92,92,.3);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--danger);cursor:pointer}
+
+.toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#0a0a0f;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;z-index:100;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;display:flex;border-top:1px solid var(--border);background:var(--bg);padding:8px 0;padding-bottom:max(8px,env(safe-area-inset-bottom));z-index:50}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--muted);cursor:pointer;padding:6px 0;font-family:var(--font-mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;transition:color .2s}
+.nav-btn.active{color:var(--accent)}
+.nav-icon{font-size:20px}
+
+.res-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.res-bar{width:4px;height:48px;border-radius:2px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="statusbar">
+    <span class="time" id="clock">09:41</span>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span style="font-size:11px;color:var(--muted)">▲▲▲</span>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="header">
+    <div class="header-top">
+      <div class="app-name">CA<span>IXA</span></div>
+      <div class="date-badge" id="date-badge">–</div>
+    </div>
+    <div class="store-tabs">
+      <button class="tab active" onclick="setStore('BOUTIQUE DE LA PLAGE',this)">🏖 Boutique</button>
+      <button class="tab" onclick="setStore('COMPTOIR DES OCEANS',this)">🌊 Comptoir</button>
+      <button class="tab" onclick="setStore('HONDARTZA',this)">⛵ Hondartza</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- SAISIE -->
+    <div class="view active" id="view-entrada">
+
+      <div id="edit-banner" class="edit-banner" style="display:none">
+        ✏️ Editando entrada del <span id="edit-date-label"></span>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Total du jour</div>
+        <div class="summary-total"><span class="currency">€</span><span id="total-preview">0,00</span></div>
+        <div class="summary-row">
+          <div class="summary-item"><div class="val" id="prev-cb">€0</div><div class="lbl">Carte</div></div>
+          <div class="summary-item"><div class="val" id="prev-liq">€0</div><div class="lbl">Liquide</div></div>
+          <div class="summary-item"><div class="val" id="prev-yokii">€0</div><div class="lbl">Noche</div></div>
+        </div>
+        <div class="payment-bar">
+          <div class="bar-cb" id="bar-cb" style="flex:0"></div>
+          <div class="bar-liq" id="bar-liq" style="flex:0"></div>
+        </div>
+        <div class="bar-legend">
+          <span><span class="legend-dot" style="background:var(--accent2)"></span>Carte</span>
+          <span><span class="legend-dot" style="background:var(--accent)"></span>Liquide</span>
+        </div>
+      </div>
+
+      <div class="date-row">
+        <label>📅 Date de la journée</label>
+        <input type="date" id="f-date">
+      </div>
+
+      <div class="section-title">Recettes du jour</div>
+      <div class="field-group">
+        <div class="field-row">
+          <span class="field-icon">💳</span>
+          <span class="field-label">Carte B.</span>
+          <input class="field-input" type="number" inputmode="decimal" placeholder="0.00" id="f-cb" oninput="updatePreview()">
+          <span class="field-suffix">€</span>
+        </div>
+        <div class="field-row">
+          <span class="field-icon">💵</span>
+          <span class="field-label">Liquide</span>
+          <input class="field-input" type="number" inputmode="decimal" placeholder="0.00" id="f-liq" oninput="updatePreview()">
+          <span class="field-suffix">€</span>
+        </div>
+        <div class="field-row">
+          <span class="field-icon">🧾</span>
+          <span class="field-label">Chèque</span>
+          <input class="field-input" type="number" inputmode="decimal" placeholder="0.00" id="f-cheq" oninput="updatePreview()">
+          <span class="field-suffix">€</span>
+        </div>
+      </div>
+
+      <div class="yokii-row">
+        <div>
+          <div class="yokii-label">⭐ Yokii / Noche</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Ventes partenaires</div>
+        </div>
+        <input class="yokii-input" type="number" inputmode="decimal" placeholder="0" id="f-yokii" oninput="updatePreview()">
+      </div>
+
+      <div class="versement-row">
+        <div class="section-title">Versements (retraits caisse)</div>
+        <div class="versement-inputs">
+          <div class="vers-field"><div class="lbl">💳 Chèques</div><input type="number" inputmode="decimal" placeholder="0.00" id="f-vch"></div>
+          <div class="vers-field"><div class="lbl">💵 Espèces</div><input type="number" inputmode="decimal" placeholder="0.00" id="f-vesp"></div>
+        </div>
+      </div>
+
+      <div class="notes-field">
+        <div class="section-title" style="margin-bottom:6px">📝 Libellé / Note</div>
+        <textarea id="f-note" placeholder="Ex: Salaire Fermin, Achat fournitures..."></textarea>
+      </div>
+
+      <button class="btn-submit" id="btn-submit" onclick="submitEntry()">ENREGISTRER ↗</button>
+      <button class="btn-cancel" id="btn-cancel" onclick="cancelEdit()" style="display:none">Annuler l'édition</button>
+
+      <div class="history-section" id="history" style="display:none">
+        <div class="section-title" style="margin-bottom:10px">Toutes les entrées</div>
+        <div id="history-list"></div>
+      </div>
+
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="view" id="view-resumen">
+      <div class="section-title" style="margin-bottom:12px">Résumé des saisies</div>
+      <div id="resumen-content">
+        <div style="text-align:center;color:var(--muted);padding:40px 0;font-size:13px">Aucune donnée encore saisie.</div>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="view" id="view-export">
+      <div class="section-title" style="margin-bottom:12px">Exporter les données</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center;margin-bottom:12px">
+        <div style="font-size:36px;margin-bottom:12px">📊</div>
+        <div style="font-family:var(--font-head);font-size:18px;margin-bottom:6px">Export CSV</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Descarga tus datos para importarlos<br>directamente en tu Excel de contabilidad</div>
+        <button onclick="exportCSV()" style="width:100%;padding:13px;border-radius:10px;background:var(--accent);color:#0a0a0f;font-family:var(--font-head);font-size:14px;font-weight:800;border:none;cursor:pointer">TÉLÉCHARGER CSV</button>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em">Données en mémoire</div>
+        <div id="export-stats" style="font-size:13px">–</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em">📲 Instalar como app</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8">
+          <b style="color:var(--text)">iPhone / Safari:</b><br>
+          Toca <b style="color:var(--accent)">Compartir</b> (□↑) → <b style="color:var(--accent)">«Añadir a inicio»</b><br><br>
+          <b style="color:var(--text)">Android / Chrome:</b><br>
+          Toca el menú <b style="color:var(--accent)">⋮</b> → <b style="color:var(--accent)">«Añadir a pantalla de inicio»</b>
+        </div>
+      </div>
+      <button onclick="clearData()" style="width:100%;padding:12px;border-radius:10px;background:transparent;border:1px solid var(--danger);color:var(--danger);font-family:var(--font-mono);font-size:12px;cursor:pointer">
+        Effacer toutes les données
+      </button>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast">✓ OK</div>
+
+  <nav class="nav">
+    <button class="nav-btn active" id="nav-entrada" onclick="showView('entrada')"><span class="nav-icon">✏️</span>Saisie</button>
+    <button class="nav-btn" id="nav-resumen" onclick="showView('resumen')"><span class="nav-icon">📈</span>Résumé</button>
+    <button class="nav-btn" id="nav-export" onclick="showView('export')"><span class="nav-icon">📤</span>Export</button>
+  </nav>
+
+</div>
+<script>
+const COLORS={'BOUTIQUE DE LA PLAGE':'#e8ff47','COMPTOIR DES OCEANS':'#7c6aff','HONDARTZA':'#47ffb0'};
+let currentStore='BOUTIQUE DE LA PLAGE';
+let entries=JSON.parse(localStorage.getItem('caixa_entries')||'[]');
+let editingId=null;
+
+function updateClock(){
+  const n=new Date();
+  document.getElementById('clock').textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+  const days=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const months=['jan','fév','mar','avr','mai','juin','juil','aoû','sep','oct','nov','déc'];
+  document.getElementById('date-badge').textContent=days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();
+}
+updateClock();setInterval(updateClock,10000);
+document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
+
+function setStore(name,el){
+  currentStore=name;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function v(id){return parseFloat(document.getElementById(id).value)||0}
+function fmt(n){return n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+function updatePreview(){
+  const cb=v('f-cb'),liq=v('f-liq'),cheq=v('f-cheq'),yokii=v('f-yokii');
+  const total=cb+liq+cheq;
+  document.getElementById('total-preview').textContent=fmt(total);
+  document.getElementById('prev-cb').textContent='€'+Math.round(cb);
+  document.getElementById('prev-liq').textContent='€'+Math.round(liq);
+  document.getElementById('prev-yokii').textContent='€'+Math.round(yokii);
+  const sum=cb+liq+0.001;
+  document.getElementById('bar-cb').style.flex=cb/sum;
+  document.getElementById('bar-liq').style.flex=liq/sum;
+}
+
+function submitEntry(){
+  const cb=v('f-cb'),liq=v('f-liq'),cheq=v('f-cheq'),yokii=v('f-yokii');
+  const vch=v('f-vch'),vesp=v('f-vesp');
+  const note=document.getElementById('f-note').value.trim();
+  const dateVal=document.getElementById('f-date').value||new Date().toISOString().slice(0,10);
+  const recettes=cb+liq+cheq;
+  if(recettes===0&&yokii===0){alert('Veuillez saisir au moins une valeur.');return}
+  const d=new Date(dateVal+'T12:00:00');
+  const entry={
+    id:editingId||Date.now().toString(),
+    date:dateVal,jour:d.getDate(),mois:dateVal.slice(0,7),
+    magasin:currentStore,cb,liquide:liq,cheque:cheq,
+    recettes,yokii,versement_cheq:vch,versement_esp:vesp,
+    note,total:recettes+yokii,ts:new Date().toISOString()
+  };
+  if(editingId){
+    const idx=entries.findIndex(e=>e.id===editingId);
+    if(idx>=0)entries[idx]=entry;
+    showToast('✓ Modifié');
+  }else{
+    entries.push(entry);
+    showToast('✓ Enregistré');
+  }
+  localStorage.setItem('caixa_entries',JSON.stringify(entries));
+  resetForm();renderHistory();updateExportStats();
+}
+
+function resetForm(){
+  editingId=null;
+  ['f-cb','f-liq','f-cheq','f-yokii','f-vch','f-vesp'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-note').value='';
+  document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
+  currentStore='BOUTIQUE DE LA PLAGE';
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  updatePreview();
+  document.getElementById('edit-banner').style.display='none';
+  document.getElementById('btn-cancel').style.display='none';
+  document.getElementById('btn-submit').textContent='ENREGISTRER ↗';
+}
+
+function cancelEdit(){resetForm()}
+
+function editEntry(id){
+  const e=entries.find(x=>x.id===id);if(!e)return;
+  editingId=id;
+  currentStore=e.magasin;
+  const storeKey=e.magasin==='BOUTIQUE DE LA PLAGE'?'Boutique':e.magasin==='COMPTOIR DES OCEANS'?'Comptoir':'Hondartza';
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.textContent.trim().includes(storeKey)));
+  document.getElementById('f-date').value=e.date;
+  document.getElementById('f-cb').value=e.cb||'';
+  document.getElementById('f-liq').value=e.liquide||'';
+  document.getElementById('f-cheq').value=e.cheque||'';
+  document.getElementById('f-yokii').value=e.yokii||'';
+  document.getElementById('f-vch').value=e.versement_cheq||'';
+  document.getElementById('f-vesp').value=e.versement_esp||'';
+  document.getElementById('f-note').value=e.note||'';
+  updatePreview();
+  document.getElementById('edit-banner').style.display='flex';
+  document.getElementById('edit-date-label').textContent=e.date;
+  document.getElementById('btn-cancel').style.display='block';
+  document.getElementById('btn-submit').textContent='GUARDAR CAMBIOS ↗';
+  showView('entrada');window.scrollTo(0,0);
+}
+
+function deleteEntry(id){
+  if(!confirm('¿Borrar esta entrada?'))return;
+  entries=entries.filter(e=>e.id!==id);
+  localStorage.setItem('caixa_entries',JSON.stringify(entries));
+  renderHistory();updateExportStats();showToast('🗑 Supprimé');
+}
+
+function renderHistory(){
+  const list=document.getElementById('history-list');
+  const hist=document.getElementById('history');
+  const sorted=[...entries].sort((a,b)=>b.date.localeCompare(a.date));
+  if(sorted.length===0){hist.style.display='none';return}
+  hist.style.display='block';
+  list.innerHTML=sorted.map(e=>`
+    <div class="entry-card">
+      <div class="entry-dot" style="background:${COLORS[e.magasin]||'#fff'}"></div>
+      <div class="entry-info">
+        <div class="entry-store">${e.magasin} · ${e.date}</div>
+        <div class="entry-breakdown">CB €${(e.cb||0).toFixed(2)} · Liq €${(e.liquide||0).toFixed(2)}${e.note?' · '+e.note:''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+        <div class="entry-amount">€${Math.round(e.total)}</div>
+        <div style="display:flex;gap:4px">
+          <button class="btn-edit" onclick="editEntry('${e.id}')">✏️ Edit</button>
+          <button class="btn-del" onclick="deleteEntry('${e.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderResumen(){
+  const el=document.getElementById('resumen-content');
+  if(entries.length===0){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:13px">Aucune donnée encore saisie.</div>';return}
+  const stores={},byMonth={};
+  entries.forEach(e=>{
+    if(!stores[e.magasin])stores[e.magasin]={total:0,cb:0,liq:0,n:0};
+    stores[e.magasin].total+=e.total;stores[e.magasin].cb+=e.cb||0;stores[e.magasin].liq+=e.liquide||0;stores[e.magasin].n++;
+    if(!byMonth[e.mois])byMonth[e.mois]=0;byMonth[e.mois]+=e.total;
+  });
+  const grandTotal=Object.values(stores).reduce((s,x)=>s+x.total,0);
+  const monthRows=Object.entries(byMonth).sort().map(([m,t])=>`
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span style="color:var(--muted)">${m}</span><span style="font-weight:500">€${fmt(t)}</span>
+    </div>`).join('');
+  el.innerHTML=`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Total général</div>
+      <div style="font-family:var(--font-head);font-size:32px;font-weight:800;color:var(--accent)">€${fmt(grandTotal)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">${entries.length} saisie${entries.length>1?'s':''}</div>
+    </div>
+    ${Object.entries(stores).map(([name,data])=>`
+      <div class="res-card">
+        <div class="res-bar" style="background:${COLORS[name]||'#fff'}"></div>
+        <div style="flex:1">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${name}</div>
+          <div style="font-family:var(--font-head);font-size:20px;font-weight:700">€${fmt(data.total)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${data.n} jour${data.n>1?'s':''} · CB €${Math.round(data.cb)} · Liq €${Math.round(data.liq)}</div>
+        </div>
+        <div style="font-size:14px;color:var(--muted)">${grandTotal>0?Math.round(data.total/grandTotal*100)+'%':'–'}</div>
+      </div>`).join('')}
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:4px">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Par mois</div>
+      ${monthRows}
+    </div>`;
+}
+
+function updateExportStats(){
+  const el=document.getElementById('export-stats');
+  if(entries.length===0){el.textContent='–';return}
+  const total=entries.reduce((s,e)=>s+e.total,0);
+  el.innerHTML=`${entries.length} entrées · Total €${fmt(total)}`;
+}
+
+function exportCSV(){
+  if(entries.length===0){alert('Aucune donnée à exporter.');return}
+  const headers=['JOUR','MOIS','MAGASIN','LIQUIDE','C.B','CHEQUE','RECETTES','YOKII','VERSEMENT_CHEQ','VERSEMENT_ESP','LIBELLE','TOTAL'];
+  const rows=[...entries].sort((a,b)=>a.date.localeCompare(b.date)).map(e=>[
+    e.jour,e.mois,e.magasin,
+    (e.liquide||0).toFixed(2),(e.cb||0).toFixed(2),(e.cheque||0).toFixed(2),(e.recettes||0).toFixed(2),
+    (e.yokii||0).toFixed(2),(e.versement_cheq||0).toFixed(2),(e.versement_esp||0).toFixed(2),
+    e.note||'',e.total.toFixed(2)
+  ].join(';'));
+  const csv=[headers.join(';'),...rows].join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='caixa_export.csv';a.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearData(){
+  if(confirm('¿Borrar todos los datos? Esta acción no se puede deshacer.')){
+    entries=[];localStorage.removeItem('caixa_entries');
+    renderHistory();renderResumen();updateExportStats();
+    showToast('🗑 Données effacées');
+  }
+}
+
+function showToast(msg='✓ OK'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='resumen')renderResumen();
+  if(name==='export')updateExportStats();
+  window.scrollTo(0,0);
+}
+
+renderHistory();updateExportStats();
+</script>
+</body>
+</html>
