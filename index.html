@@ -485,7 +485,7 @@ Si un valor no aparece en el ticket, ponlo a 0.`}
     resultDiv.classList.add('active');
 
   }catch(err){
-    showToast('⚠️ Error al leer el ticket');
+    showToast('ERR: '+err.message.slice(0,40));
     console.error(err);
   }finally{
     overlay.classList.remove('active');
