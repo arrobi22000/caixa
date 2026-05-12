@@ -923,42 +923,82 @@ async function syncToExcel() {
     const token = await getAccessToken();
     const fileId = await findOrCreateExcelFile();
 
-    // Get current Caja sheet to find next empty row
+    const synced = JSON.parse(localStorage.getItem('od_synced') || '[]');
+    const toSync = entries.filter(e => !synced.includes(e.id));
+    if (toSync.length === 0) { showToast('✓ Todo ya sincronizado'); return; }
+
+    // Get all data from Caja to find matching rows
     const rangeResp = await fetch(
       `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/usedRange`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     const rangeData = await rangeResp.json();
-    const nextRow = (rangeData.rowCount || 1) + 1;
+    const rows = rangeData.values;
 
-    // Prepare rows to add (only entries not yet synced)
-    const synced = JSON.parse(localStorage.getItem('od_synced') || '[]');
-    const toSync = entries.filter(e => !synced.includes(e.id));
-    if (toSync.length === 0) { showToast('✓ Todo ya sincronizado'); return; }
-
-    const rows = toSync.map(e => [
-      e.jour, e.mois, e.magasin,
-      e.liquide || 0, e.cb || 0, e.cheque || 0, e.recettes || 0,
-      e.yokii || 0, e.noche || 0, e.versement_cheq || 0, e.versement_esp || 0,
-      e.note || '', e.total || 0
-    ]);
-
-    // Write to Excel
-    const endRow = nextRow + rows.length - 1;
-    const range = `A${nextRow}:M${endRow}`;
-    await fetch(
-      `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/range(address='${range}')`,
-      {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ values: rows })
+    let syncCount = 0;
+    for (const entry of toSync) {
+      // Find the row matching JOUR + MOIS + MAGASIN
+      // Col A=0(JOUR), B=1(MOIS), C=2(MAGASIN)
+      let targetRow = -1;
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        // Handle different formats Excel API might return
+        const jour = r[0] !== null && r[0] !== '' ? parseInt(String(r[0])) : -1;
+        const mois = String(r[1] || '').trim();
+        const mag = String(r[2] || '').trim().toUpperCase();
+        const entryMag = String(entry.magasin || '').trim().toUpperCase();
+        const entryMois = String(entry.mois || '').trim();
+        if (jour === entry.jour && mois === entryMois && mag === entryMag) {
+          targetRow = i + 1; // 1-indexed for Excel API
+          break;
+        }
       }
-    );
 
-    // Mark as synced
+      if (targetRow === -1) {
+        console.warn('Fila no encontrada para:', entry.jour, entry.mois, entry.magasin);
+        // Try to find by logging what rows look like
+        const sample = rows.slice(2,5).map(r => `[${r[0]}|${r[1]}|${r[2]}]`).join(', ');
+        console.warn('Muestra de filas:', sample);
+        showToast(`⚠️ Día ${entry.jour}/${entry.mois} no encontrado`);
+        continue;
+      }
+
+      // Write only data columns: D(LIQUIDE), E(CB), F(CHEQUE), O(YOKII), Q(NOCHE)
+      // D=col4, E=col5, F=col6 -> range D:F
+      await fetch(
+        `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/range(address='D${targetRow}:F${targetRow}')`,
+        {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ values: [[entry.liquide || 0, entry.cb || 0, entry.cheque || 0]] })
+        }
+      );
+
+      // Write YOKII (col O = col 15) and NOCHE (col Q = col 17)
+      await fetch(
+        `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/range(address='O${targetRow}')`,
+        {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ values: [[entry.yokii || 0]] })
+        }
+      );
+
+      await fetch(
+        `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/range(address='Q${targetRow}')`,
+        {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ values: [[entry.noche || 0]] })
+        }
+      );
+
+      syncCount++;
+    }
+
     const newSynced = [...synced, ...toSync.map(e => e.id)];
     localStorage.setItem('od_synced', JSON.stringify(newSynced));
-    showToast(`✓ ${toSync.length} entrada${toSync.length > 1 ? 's' : ''} sincronizada${toSync.length > 1 ? 's' : ''}`);
+    showToast(`✓ ${syncCount} día${syncCount > 1 ? 's' : ''} actualizado${syncCount > 1 ? 's' : ''} en Excel`);
     updateSyncStatus();
   } catch (e) {
     showToast('⚠️ ' + e.message.slice(0, 50));
