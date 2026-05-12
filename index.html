@@ -934,13 +934,7 @@ async function syncToExcel() {
     );
     const rangeData = await rangeResp.json();
     const rows = rangeData.values;
-    // Debug: show first few rows
-    if (rows && rows.length > 2) {
-      const sample = rows.slice(2,6).map(r => `JOUR=${r[0]} MOIS=${r[1]} MAG=${r[2]}`).join(' | ');
-      showToast('Debug: ' + sample.slice(0,80));
-      console.log('Excel rows sample:', rows.slice(2,6));
-      console.log('Entry looking for:', toSync[0]?.jour, toSync[0]?.mois, toSync[0]?.magasin);
-    }
+
 
     let syncCount = 0;
     for (const entry of toSync) {
