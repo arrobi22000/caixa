@@ -894,13 +894,16 @@ function updateOneDriveStatus() {
 }
 
 async function findOrCreateExcelFile() {
+  // Use hardcoded share ID from OneDrive link
+  if (oneDriveFileId) return oneDriveFileId;
   const saved = localStorage.getItem('od_file_id');
   if (saved) { oneDriveFileId = saved; return saved; }
   const token = await getAccessToken();
-  // Access file by exact path
-  const path = "BOUTIQUE DE LA PLAGE/2026/Ventas/Contabilidad.xlsx";
+  // Decode share URL to get file ID
+  const shareUrl = 'https://1drv.ms/x/c/67b7b151e346b7a4/IQBFifThd_gVQYL83rlD5_xaAUbuiChX7XI6RZq7vh1YbX4';
+  const encoded = btoa(shareUrl).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
   const resp = await fetch(
-    `https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(path)}`,
+    `https://graph.microsoft.com/v1.0/shares/u!${encoded}/driveItem`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!resp.ok) {
@@ -910,7 +913,6 @@ async function findOrCreateExcelFile() {
   const file = await resp.json();
   oneDriveFileId = file.id;
   localStorage.setItem('od_file_id', file.id);
-  localStorage.setItem('od_file_name', file.name);
   return file.id;
 }
 
