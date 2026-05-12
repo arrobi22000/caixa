@@ -55,42 +55,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .bar-legend{display:flex;gap:12px;margin-top:6px;font-size:10px;color:var(--muted)}
 .legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
 
-/* PHOTO SCAN BUTTON */
-.scan-btn{
-  width:100%;padding:14px;border-radius:14px;border:1.5px dashed var(--accent2);
-  background:rgba(124,106,255,.06);color:var(--accent2);
-  font-family:var(--font-head);font-size:14px;font-weight:700;
-  cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;
-  transition:all .2s;
-}
-.scan-btn:active{transform:scale(.98);background:rgba(124,106,255,.12)}
-.scan-btn.scanning{opacity:.7;pointer-events:none}
-
-/* SCANNING OVERLAY */
-.scan-overlay{
-  background:var(--surface2);border:1px solid var(--accent2);
-  border-radius:14px;padding:16px;margin-bottom:12px;
-  display:none;text-align:center;
-}
-.scan-overlay.active{display:block}
-.scan-spinner{
-  width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent2);
-  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-.scan-result{
-  background:rgba(71,255,176,.08);border:1px solid rgba(71,255,176,.3);
-  border-radius:12px;padding:12px 14px;margin-bottom:12px;
-  display:none;
-}
-.scan-result.active{display:block}
-.scan-result-title{font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
-.scan-result-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
-.scan-apply-btn{
-  width:100%;padding:11px;border-radius:10px;background:var(--green);color:#0a0a0f;
-  font-family:var(--font-head);font-size:13px;font-weight:800;border:none;cursor:pointer;margin-top:8px;
-}
-
 .date-row{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
 .date-row label{font-size:12px;color:var(--muted)}
 .date-row input[type=date]{background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:13px;color-scheme:dark}
@@ -104,10 +68,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .field-input::placeholder{color:var(--border)}
 .field-input:focus{color:var(--accent)}
 .field-suffix{font-size:13px;color:var(--muted);margin-left:4px;padding:14px 0}
-
-.yokii-row{background:var(--surface2);border:1px solid rgba(124,106,255,.3);border-radius:14px;padding:14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
-.yokii-label{font-size:12px;color:var(--accent2)}
-.yokii-input{background:transparent;border:none;outline:none;color:var(--accent2);font-family:var(--font-mono);font-size:18px;font-weight:500;width:100px;text-align:right}
 
 .versement-row{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px}
 .versement-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -137,7 +97,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .btn-edit{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--text);cursor:pointer}
 .btn-del{background:transparent;border:1px solid rgba(255,92,92,.3);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--danger);cursor:pointer}
 
-/* EMAIL CONFIG */
 .email-config{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
 .email-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:var(--font-mono);font-size:13px;margin-top:8px;outline:none}
 .email-input:focus{border-color:var(--accent)}
@@ -152,8 +111,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 
 .res-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
 .res-bar{width:4px;height:48px;border-radius:2px;flex-shrink:0}
-
-#file-input{display:none}
 </style>
 </head>
 <body>
@@ -188,30 +145,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
         ✏️ Editando entrada del <span id="edit-date-label"></span>
       </div>
 
-      <!-- PHOTO SCAN -->
-      <input type="file" id="file-input" accept="image/*" onchange="handlePhoto(event)">
-      <button class="scan-btn" id="scan-btn" onclick="document.getElementById('file-input').click()">
-        📷 Escanear ticket con IA
-      </button>
-
-      <div class="scan-overlay" id="scan-overlay">
-        <div class="scan-spinner"></div>
-        <div style="font-size:12px;color:var(--accent2)">Leyendo el ticket...</div>
-      </div>
-
-      <div class="scan-result" id="scan-result">
-        <div class="scan-result-title">✨ IA ha detectado</div>
-        <div id="scan-result-body"></div>
-        <button class="scan-apply-btn" onclick="applyScanResult()">APLICAR ESTOS VALORES</button>
-      </div>
-
       <div class="summary-card">
         <div class="summary-label">Total du jour</div>
         <div class="summary-total"><span class="currency">€</span><span id="total-preview">0,00</span></div>
         <div class="summary-row">
           <div class="summary-item"><div class="val" id="prev-cb">€0</div><div class="lbl">Carte</div></div>
           <div class="summary-item"><div class="val" id="prev-liq">€0</div><div class="lbl">Liquide</div></div>
-          <div class="summary-item"><div class="val" id="prev-yokii">€0</div><div class="lbl">Noche</div></div>
+          <div class="summary-item"><div class="val" id="prev-part">€0</div><div class="lbl">Partenaires</div></div>
         </div>
         <div class="payment-bar">
           <div class="bar-cb" id="bar-cb" style="flex:0"></div>
@@ -250,6 +190,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
         </div>
       </div>
 
+      <div class="section-title">Ventes partenaires (manuel)</div>
       <div class="field-group" style="border-color:rgba(124,106,255,.3);background:rgba(124,106,255,.04)">
         <div class="field-row">
           <span class="field-icon">⭐</span>
@@ -298,27 +239,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 
     <!-- EMAIL -->
     <div class="view" id="view-email">
-      <div class="section-title" style="margin-bottom:12px">Configuración</div>
+      <div class="section-title" style="margin-bottom:12px">Resumen semanal por email</div>
 
-      <div class="email-config" style="margin-bottom:10px">
+      <div class="email-config">
         <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:4px">
-          📧 Tu email para recibir el resumen semanal
+          📧 Tu email para recibir el resumen
         </div>
         <input class="email-input" type="email" id="email-addr" placeholder="tu@email.com" oninput="saveEmail()">
       </div>
 
-      <div style="background:rgba(232,255,71,.05);border:1px solid rgba(232,255,71,.2);border-radius:14px;padding:14px;margin-bottom:12px">
-        <div style="font-size:12px;color:var(--accent);font-weight:500;margin-bottom:4px">🔑 Clave API de Anthropic</div>
-        <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:8px">
-          Necesaria para escanear tickets con IA.<br>
-          Consíguela gratis en <b style="color:var(--text)">console.anthropic.com</b> → API Keys → Create Key
-        </div>
-        <input class="email-input" type="password" id="api-key" placeholder="sk-ant-..." oninput="saveApiKey()" style="font-size:12px;letter-spacing:.05em">
-        <div id="api-key-status" style="font-size:11px;margin-top:6px;color:var(--muted)"></div>
-      </div>
-
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px">
-        <div class="section-title" style="margin-bottom:8px">Vista previa del resumen</div>
+        <div class="section-title" style="margin-bottom:8px">Vista previa</div>
         <div id="email-preview" style="font-size:12px;color:var(--muted);line-height:1.7">
           Introduce datos primero para ver la vista previa.
         </div>
@@ -327,10 +258,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
       <button onclick="sendWeeklyEmail()" style="width:100%;padding:15px;border-radius:14px;background:var(--accent);color:#0a0a0f;font-family:var(--font-head);font-size:15px;font-weight:800;border:none;cursor:pointer;margin-bottom:8px">
         📧 ENVIAR RESUMEN SEMANAL
       </button>
-
       <button onclick="sendMonthlyEmail()" style="width:100%;padding:13px;border-radius:14px;background:transparent;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;cursor:pointer;margin-bottom:16px">
         📊 Enviar resumen mensual
       </button>
+
+      <div style="background:var(--surface);border:1px solid rgba(0,120,215,.3);border-radius:14px;padding:16px;margin-bottom:12px">
+        <div style="font-size:12px;color:#0078d4;font-weight:500;margin-bottom:8px">☁️ Sincronización con OneDrive</div>
+        <div id="od-status" style="font-size:12px;color:var(--muted);margin-bottom:10px">No conectado</div>
+        <button id="od-btn" onclick="loginOneDrive()" style="width:100%;padding:11px;border-radius:10px;background:#0078d4;color:#fff;font-family:var(--font-head);font-size:13px;font-weight:700;border:none;cursor:pointer;margin-bottom:8px">
+          Conectar con OneDrive
+        </button>
+        <div id="od-sync-section" style="display:none">
+          <div id="od-sync-status" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
+          <button onclick="syncToExcel()" style="width:100%;padding:11px;border-radius:10px;background:var(--accent);color:#0a0a0f;font-family:var(--font-head);font-size:13px;font-weight:700;border:none;cursor:pointer">
+            ↗ Sincronizar con Excel
+          </button>
+        </div>
+      </div>
 
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px">
         <div class="section-title" style="margin-bottom:8px">Export CSV</div>
@@ -345,6 +289,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
       </div>
     </div>
 
+
+    <!-- COMPARATIVAS 2025 -->
+    <div class="view" id="view-comp">
+      <div class="section-title" style="margin-bottom:12px">Comparativa 2026 vs 2025</div>
+      <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto">
+        <button class="tab active" id="comp-tab-all" onclick="setCompStore('all',this)">🏪 Todas</button>
+        <button class="tab" id="comp-tab-plage" onclick="setCompStore('BOUTIQUE DE LA PLAGE',this)">🏖 Boutique</button>
+        <button class="tab" id="comp-tab-comp" onclick="setCompStore('COMPTOIR DES OCEANS',this)">🌊 Comptoir</button>
+        <button class="tab" id="comp-tab-hon" onclick="setCompStore('HONDARTZA',this)">⛵ Hondartza</button>
+      </div>
+      <div id="comp-content"></div>
+    </div>
+
   </div>
 
   <div class="toast" id="toast">✓ OK</div>
@@ -353,19 +310,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
     <button class="nav-btn active" id="nav-entrada" onclick="showView('entrada')"><span class="nav-icon">✏️</span>Saisie</button>
     <button class="nav-btn" id="nav-resumen" onclick="showView('resumen')"><span class="nav-icon">📈</span>Résumé</button>
     <button class="nav-btn" id="nav-email" onclick="showView('email');renderEmailPreview()"><span class="nav-icon">📧</span>Email</button>
+    <button class="nav-btn" id="nav-comp" onclick="showView('comp');renderComp()"><span class="nav-icon">📊</span>2025</button>
   </nav>
 
 </div>
-
 <script>
 const COLORS={'BOUTIQUE DE LA PLAGE':'#e8ff47','COMPTOIR DES OCEANS':'#7c6aff','HONDARTZA':'#47ffb0'};
 const STORE_SHORT={'BOUTIQUE DE LA PLAGE':'Boutique','COMPTOIR DES OCEANS':'Comptoir','HONDARTZA':'Hondartza'};
 let currentStore='BOUTIQUE DE LA PLAGE';
 let entries=JSON.parse(localStorage.getItem('caixa_entries')||'[]');
 let editingId=null;
-let scanData=null;
 
-// ---- CLOCK ----
 function updateClock(){
   const n=new Date();
   document.getElementById('clock').textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
@@ -376,25 +331,8 @@ function updateClock(){
 updateClock();setInterval(updateClock,10000);
 document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
 document.getElementById('email-addr').value=localStorage.getItem('caixa_email')||'';
-const _savedKey=localStorage.getItem('caixa_apikey')||'';
-if(_savedKey){
-  const _ki=document.getElementById('api-key');
-  if(_ki){_ki.value=_savedKey;
-    const st=document.getElementById('api-key-status');
-    if(st&&_savedKey.startsWith('sk-ant-')){st.textContent='✓ Clave guardada';st.style.color='var(--green)';}
-  }
-}
 
 function saveEmail(){localStorage.setItem('caixa_email',document.getElementById('email-addr').value)}
-function saveApiKey(){
-  const k=document.getElementById('api-key').value.trim();
-  localStorage.setItem('caixa_apikey',k);
-  const st=document.getElementById('api-key-status');
-  if(k.startsWith('sk-ant-')){st.textContent='✓ Clave guardada';st.style.color='var(--green)'}
-  else if(k.length>0){st.textContent='⚠️ Parece incorrecta (debe empezar por sk-ant-)';st.style.color='var(--danger)'}
-  else{st.textContent='';} 
-}
-function getApiKey(){return localStorage.getItem('caixa_apikey')||''}
 function setStore(name,el){currentStore=name;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
 function v(id){return parseFloat(document.getElementById(id).value)||0}
 function fmt(n){return n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -405,144 +343,19 @@ function updatePreview(){
   document.getElementById('total-preview').textContent=fmt(total);
   document.getElementById('prev-cb').textContent='€'+Math.round(cb);
   document.getElementById('prev-liq').textContent='€'+Math.round(liq);
-  document.getElementById('prev-yokii').textContent='€'+Math.round(yokii+noche);
+  document.getElementById('prev-part').textContent='€'+Math.round(yokii+noche);
   const sum=cb+liq+0.001;
   document.getElementById('bar-cb').style.flex=cb/sum;
   document.getElementById('bar-liq').style.flex=liq/sum;
 }
 
-// ---- PHOTO SCAN ----
-async function handlePhoto(event){
-  const file=event.target.files[0];
-  if(!file)return;
-  const btn=document.getElementById('scan-btn');
-  const overlay=document.getElementById('scan-overlay');
-  const resultDiv=document.getElementById('scan-result');
-  btn.classList.add('scanning');
-  btn.innerHTML='⏳ Analizando...';
-  overlay.classList.add('active');
-  resultDiv.classList.remove('active');
-  scanData=null;
-
-  try{
-    const base64=await fileToBase64(file);
-    const mediaType='image/jpeg';
-
-    const response=await fetch('https://caisse-proxy.arrobi.workers.dev/',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        messages:[{
-          role:'user',
-          content:[
-            {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
-            {type:'text',text:`Eres un asistente de contabilidad. Analiza este ticket o resumen de caja y extrae los valores numéricos.
-Responde SOLO con un JSON válido, sin texto adicional, con este formato exacto:
-{
-  "cb": 0,
-  "liquide": 0,
-  "cheque": 0,
-  "yokii": 0,
-  "versement_cheq": 0,
-  "versement_esp": 0,
-  "note": ""
-}
-- cb: total pagado con tarjeta bancaria (carte bleue / CB)
-- liquide: total en efectivo (liquide / espèces)
-- cheque: total en cheques
-- yokii: ventas por plataformas tipo Yokii, Noche, booking online
-- versement_cheq: cheques retirados de caja
-- versement_esp: efectivo retirado de caja
-- note: texto libre si hay alguna anotación relevante
-Si un valor no aparece en el ticket, ponlo a 0.`}
-          ]
-        }]
-      })
-    });
-
-    const data=await response.json();
-    if(!data||!data.content){
-      const errMsg=(data&&data.error)?JSON.stringify(data.error):'Respuesta vacía';
-      throw new Error(errMsg);
-    }
-    const text=data.content.map(i=>i.text||'').join('');
-    const clean=text.replace(/```json|```/g,'').trim();
-    scanData=JSON.parse(clean);
-
-    // Show result
-    const rows=[];
-    if(scanData.cb>0) rows.push(`<div class="scan-result-row"><span style="color:var(--muted)">💳 Carte B.</span><span>€${fmt(scanData.cb)}</span></div>`);
-    if(scanData.liquide>0) rows.push(`<div class="scan-result-row"><span style="color:var(--muted)">💵 Liquide</span><span>€${fmt(scanData.liquide)}</span></div>`);
-    if(scanData.cheque>0) rows.push(`<div class="scan-result-row"><span style="color:var(--muted)">🧾 Chèque</span><span>€${fmt(scanData.cheque)}</span></div>`);
-    if(scanData.yokii>0) rows.push(`<div class="scan-result-row"><span style="color:var(--muted)">⭐ Yokii</span><span>€${fmt(scanData.yokii)}</span></div>`);
-    if(scanData.versement_cheq>0) rows.push(`<div class="scan-result-row"><span style="color:var(--muted)">↗ Vers. chèq</span><span>€${fmt(scanData.versement_cheq)}</span></div>`);
-    if(scanData.versement_esp>0) rows.push(`<div class="scan-result-row"><span style="color:var(--muted)">↗ Vers. esp</span><span>€${fmt(scanData.versement_esp)}</span></div>`);
-    if(scanData.note) rows.push(`<div class="scan-result-row"><span style="color:var(--muted)">📝 Note</span><span>${scanData.note}</span></div>`);
-    const total=(scanData.cb||0)+(scanData.liquide||0)+(scanData.cheque||0)+(scanData.yokii||0);
-    rows.push(`<div class="scan-result-row" style="border-top:1px solid rgba(71,255,176,.2);margin-top:6px;padding-top:6px;font-weight:600"><span>TOTAL</span><span style="color:var(--green)">€${fmt(total)}</span></div>`);
-
-    document.getElementById('scan-result-body').innerHTML=rows.join('');
-    resultDiv.classList.add('active');
-
-  }catch(err){
-    showToast('ERR: '+err.message.slice(0,40));
-    console.error(err);
-  }finally{
-    overlay.classList.remove('active');
-    btn.classList.remove('scanning');
-    btn.innerHTML='📷 Escanear ticket con IA';
-    event.target.value='';
-  }
-}
-
-function applyScanResult(){
-  if(!scanData)return;
-  if(scanData.cb) document.getElementById('f-cb').value=scanData.cb;
-  if(scanData.liquide) document.getElementById('f-liq').value=scanData.liquide;
-  if(scanData.cheque) document.getElementById('f-cheq').value=scanData.cheque;
-  if(scanData.yokii) document.getElementById('f-yokii').value=scanData.yokii;
-  if(scanData.versement_cheq) document.getElementById('f-vch').value=scanData.versement_cheq;
-  if(scanData.versement_esp) document.getElementById('f-vesp').value=scanData.versement_esp;
-  if(scanData.note) document.getElementById('f-note').value=scanData.note;
-  updatePreview();
-  document.getElementById('scan-result').classList.remove('active');
-  showToast('✓ Valores aplicados');
-}
-
-function fileToBase64(file){
-  return new Promise((res,rej)=>{
-    const img=new Image();
-    const url=URL.createObjectURL(file);
-    img.onload=()=>{
-      const MAX=600;
-      let w=img.width,h=img.height;
-      if(w>MAX||h>MAX){
-        if(w>h){h=Math.round(h*MAX/w);w=MAX;}
-        else{w=Math.round(w*MAX/h);h=MAX;}
-      }
-      const canvas=document.createElement('canvas');
-      canvas.width=w;canvas.height=h;
-      canvas.getContext('2d').drawImage(img,0,0,w,h);
-      URL.revokeObjectURL(url);
-      const b64=canvas.toDataURL('image/jpeg',0.60).split(',')[1];
-      console.log('Image size KB:', Math.round(b64.length*0.75/1024));
-      res(b64);
-    };
-    img.onerror=()=>rej(new Error('Error leyendo imagen'));
-    img.src=url;
-  });
-}
-
-// ---- ENTRY CRUD ----
 function submitEntry(){
   const cb=v('f-cb'),liq=v('f-liq'),cheq=v('f-cheq'),yokii=v('f-yokii'),noche=v('f-noche');
   const vch=v('f-vch'),vesp=v('f-vesp');
   const note=document.getElementById('f-note').value.trim();
   const dateVal=document.getElementById('f-date').value||new Date().toISOString().slice(0,10);
   const recettes=cb+liq+cheq;
-  if(recettes===0&&yokii===0){alert('Veuillez saisir au moins une valeur.');return}
+  if(recettes===0&&yokii===0&&noche===0){alert('Veuillez saisir au moins une valeur.');return}
   const d=new Date(dateVal+'T12:00:00');
   const entry={
     id:editingId||Date.now().toString(),
@@ -574,7 +387,6 @@ function resetForm(){
   document.getElementById('edit-banner').style.display='none';
   document.getElementById('btn-cancel').style.display='none';
   document.getElementById('btn-submit').textContent='ENREGISTRER ↗';
-  document.getElementById('scan-result').classList.remove('active');
 }
 
 function cancelEdit(){resetForm()}
@@ -620,7 +432,7 @@ function renderHistory(){
       <div class="entry-dot" style="background:${COLORS[e.magasin]||'#fff'}"></div>
       <div class="entry-info">
         <div class="entry-store">${STORE_SHORT[e.magasin]||e.magasin} · ${e.date}</div>
-        <div class="entry-breakdown">CB €${(e.cb||0).toFixed(2)} · Liq €${(e.liquide||0).toFixed(2)}${e.note?' · '+e.note:''}</div>
+        <div class="entry-breakdown">CB €${(e.cb||0).toFixed(2)} · Liq €${(e.liquide||0).toFixed(2)}${e.yokii?' · Yokii €'+e.yokii.toFixed(2):''}${e.noche?' · Noche €'+e.noche.toFixed(2):''}${e.note?' · '+e.note:''}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
         <div class="entry-amount">€${Math.round(e.total)}</div>
@@ -632,14 +444,18 @@ function renderHistory(){
     </div>`).join('');
 }
 
-// ---- RESUMEN ----
 function renderResumen(){
   const el=document.getElementById('resumen-content');
   if(entries.length===0){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:13px">Aucune donnée encore saisie.</div>';return}
   const stores={},byMonth={};
   entries.forEach(e=>{
-    if(!stores[e.magasin])stores[e.magasin]={total:0,cb:0,liq:0,n:0};
-    stores[e.magasin].total+=e.total;stores[e.magasin].cb+=e.cb||0;stores[e.magasin].liq+=e.liquide||0;stores[e.magasin].n++;
+    if(!stores[e.magasin])stores[e.magasin]={total:0,cb:0,liq:0,yokii:0,noche:0,n:0};
+    stores[e.magasin].total+=e.total;
+    stores[e.magasin].cb+=e.cb||0;
+    stores[e.magasin].liq+=e.liquide||0;
+    stores[e.magasin].yokii+=e.yokii||0;
+    stores[e.magasin].noche+=e.noche||0;
+    stores[e.magasin].n++;
     if(!byMonth[e.mois])byMonth[e.mois]=0;byMonth[e.mois]+=e.total;
   });
   const grandTotal=Object.values(stores).reduce((s,x)=>s+x.total,0);
@@ -659,7 +475,7 @@ function renderResumen(){
         <div style="flex:1">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${name}</div>
           <div style="font-family:var(--font-head);font-size:20px;font-weight:700">€${fmt(data.total)}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">${data.n} jour${data.n>1?'s':''} · CB €${Math.round(data.cb)} · Liq €${Math.round(data.liq)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${data.n} jour${data.n>1?'s':''} · CB €${Math.round(data.cb)} · Liq €${Math.round(data.liq)}${data.yokii>0?' · Yokii €'+Math.round(data.yokii):''}${data.noche>0?' · Noche €'+Math.round(data.noche):''}</div>
         </div>
         <div style="font-size:14px;color:var(--muted)">${grandTotal>0?Math.round(data.total/grandTotal*100)+'%':'–'}</div>
       </div>`).join('')}
@@ -669,63 +485,45 @@ function renderResumen(){
     </div>`;
 }
 
-// ---- EMAIL ----
 function getWeekRange(){
-  const now=new Date();
-  const day=now.getDay();
+  const now=new Date();const day=now.getDay();
   const monday=new Date(now);monday.setDate(now.getDate()-(day===0?6:day-1));
   const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
   return{start:monday.toISOString().slice(0,10),end:sunday.toISOString().slice(0,10)};
 }
-
 function getMonthRange(){
   const now=new Date();
   const start=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
-  const end=now.toISOString().slice(0,10);
-  return{start,end};
+  return{start,end:now.toISOString().slice(0,10)};
 }
 
 function buildEmailBody(rangeEntries,rangeLabel,dateRange){
-  if(rangeEntries.length===0) return{subject:`CAIXA – ${rangeLabel} – Sin datos`,body:`No hay datos registrados para ${dateRange}.`};
+  if(rangeEntries.length===0)return{subject:`CAIXA – ${rangeLabel} – Sin datos`,body:`No hay datos para ${dateRange}.`};
   const stores={};
   rangeEntries.forEach(e=>{
-    if(!stores[e.magasin])stores[e.magasin]={total:0,cb:0,liq:0,cheque:0,yokii:0,n:0};
-    stores[e.magasin].total+=e.total;
-    stores[e.magasin].cb+=e.cb||0;
-    stores[e.magasin].liq+=e.liquide||0;
-    stores[e.magasin].cheque+=e.cheque||0;
-    stores[e.magasin].yokii+=e.yokii||0;
-    stores[e.magasin].n++;
+    if(!stores[e.magasin])stores[e.magasin]={total:0,cb:0,liq:0,yokii:0,noche:0,n:0};
+    stores[e.magasin].total+=e.total;stores[e.magasin].cb+=e.cb||0;
+    stores[e.magasin].liq+=e.liquide||0;stores[e.magasin].yokii+=e.yokii||0;
+    stores[e.magasin].noche+=e.noche||0;stores[e.magasin].n++;
   });
   const grandTotal=Object.values(stores).reduce((s,x)=>s+x.total,0);
   const subject=`CAIXA – ${rangeLabel} – Total €${fmt(grandTotal)}`;
-
-  let body=`RESUMEN ${rangeLabel.toUpperCase()}\n`;
-  body+=`Période: ${dateRange}\n`;
-  body+=`${'─'.repeat(40)}\n\n`;
-
+  let body=`RESUMEN ${rangeLabel.toUpperCase()}\nPériode: ${dateRange}\n${'─'.repeat(40)}\n\n`;
   Object.entries(stores).forEach(([name,d])=>{
     body+=`🏪 ${name}\n`;
     body+=`   Total:    €${fmt(d.total)}\n`;
-    if(d.cb>0)    body+=`   Carte B.: €${fmt(d.cb)}\n`;
-    if(d.liq>0)   body+=`   Liquide:  €${fmt(d.liq)}\n`;
-    if(d.cheque>0) body+=`   Chèque:   €${fmt(d.cheque)}\n`;
-    if(d.yokii>0)  body+=`   Yokii:    €${fmt(d.yokii)}\n`;
+    if(d.cb>0)body+=`   Carte B.: €${fmt(d.cb)}\n`;
+    if(d.liq>0)body+=`   Liquide:  €${fmt(d.liq)}\n`;
+    if(d.yokii>0)body+=`   Yokii:    €${fmt(d.yokii)}\n`;
+    if(d.noche>0)body+=`   Noche:    €${fmt(d.noche)}\n`;
     body+=`   Jours:    ${d.n}\n\n`;
   });
-
-  body+=`${'─'.repeat(40)}\n`;
-  body+=`TOTAL GÉNÉRAL: €${fmt(grandTotal)}\n\n`;
-
-  // Daily breakdown
-  body+=`DÉTAIL PAR JOUR\n${'─'.repeat(40)}\n`;
-  const sorted=[...rangeEntries].sort((a,b)=>a.date.localeCompare(b.date));
-  sorted.forEach(e=>{
+  body+=`${'─'.repeat(40)}\nTOTAL GÉNÉRAL: €${fmt(grandTotal)}\n\nDÉTAIL PAR JOUR\n${'─'.repeat(40)}\n`;
+  [...rangeEntries].sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
     body+=`${e.date} | ${STORE_SHORT[e.magasin]||e.magasin} | €${fmt(e.total)}`;
-    if(e.note) body+=` | ${e.note}`;
+    if(e.note)body+=` | ${e.note}`;
     body+='\n';
   });
-
   body+=`\n\nEnviado desde CAIXA app`;
   return{subject,body};
 }
@@ -757,10 +555,8 @@ function sendMonthlyEmail(){
   window.location.href=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-// ---- EXPORT ----
 function updateExportStats(){
-  const el=document.getElementById('export-stats');
-  if(!el)return;
+  const el=document.getElementById('export-stats');if(!el)return;
   if(entries.length===0){el.textContent='–';return}
   const total=entries.reduce((s,e)=>s+e.total,0);
   el.textContent=`${entries.length} entrées · Total €${fmt(total)}`;
@@ -806,7 +602,368 @@ function showView(name){
   window.scrollTo(0,0);
 }
 
-renderHistory();updateExportStats();
+
+// ---- 2025 DATA ----
+const DATA_2025 = {"BOUTIQUE DE LA PLAGE|2025-01-02":1424.8,"BOUTIQUE DE LA PLAGE|2025-01-03":842.0,"BOUTIQUE DE LA PLAGE|2025-01-04":1118.9,"BOUTIQUE DE LA PLAGE|2025-01-05":276.0,"BOUTIQUE DE LA PLAGE|2025-01-07":198.0,"BOUTIQUE DE LA PLAGE|2025-01-08":30.0,"BOUTIQUE DE LA PLAGE|2025-01-12":924.0,"BOUTIQUE DE LA PLAGE|2025-01-13":67.0,"BOUTIQUE DE LA PLAGE|2025-01-14":21.0,"BOUTIQUE DE LA PLAGE|2025-01-15":179.0,"BOUTIQUE DE LA PLAGE|2025-01-16":175.0,"BOUTIQUE DE LA PLAGE|2025-01-17":331.0,"BOUTIQUE DE LA PLAGE|2025-01-18":748.0,"BOUTIQUE DE LA PLAGE|2025-01-19":614.8,"BOUTIQUE DE LA PLAGE|2025-01-22":84.0,"BOUTIQUE DE LA PLAGE|2025-01-23":49.0,"BOUTIQUE DE LA PLAGE|2025-01-24":433.0,"BOUTIQUE DE LA PLAGE|2025-01-25":26.0,"BOUTIQUE DE LA PLAGE|2025-01-26":126.0,"BOUTIQUE DE LA PLAGE|2025-01-27":424.0,"BOUTIQUE DE LA PLAGE|2025-01-29":131.0,"BOUTIQUE DE LA PLAGE|2025-02-03":262.0,"BOUTIQUE DE LA PLAGE|2025-02-04":485.0,"BOUTIQUE DE LA PLAGE|2025-02-05":355.4,"BOUTIQUE DE LA PLAGE|2025-02-06":73.4,"BOUTIQUE DE LA PLAGE|2025-02-07":373.9,"BOUTIQUE DE LA PLAGE|2025-02-09":321.9,"BOUTIQUE DE LA PLAGE|2025-02-10":527.4,"BOUTIQUE DE LA PLAGE|2025-02-11":416.6,"BOUTIQUE DE LA PLAGE|2025-02-12":62.0,"BOUTIQUE DE LA PLAGE|2025-02-13":573.0,"BOUTIQUE DE LA PLAGE|2025-02-14":376.0,"BOUTIQUE DE LA PLAGE|2025-02-15":1513.2,"BOUTIQUE DE LA PLAGE|2025-02-16":1790.0,"BOUTIQUE DE LA PLAGE|2025-02-17":614.0,"BOUTIQUE DE LA PLAGE|2025-02-18":492.9,"BOUTIQUE DE LA PLAGE|2025-02-19":952.3,"BOUTIQUE DE LA PLAGE|2025-02-20":769.9,"BOUTIQUE DE LA PLAGE|2025-02-21":652.9,"BOUTIQUE DE LA PLAGE|2025-02-22":1320.0,"BOUTIQUE DE LA PLAGE|2025-02-23":1671.0,"BOUTIQUE DE LA PLAGE|2025-02-24":516.3,"BOUTIQUE DE LA PLAGE|2025-02-25":180.9,"BOUTIQUE DE LA PLAGE|2025-02-26":789.0,"BOUTIQUE DE LA PLAGE|2025-02-27":442.6,"BOUTIQUE DE LA PLAGE|2025-02-28":823.7,"BOUTIQUE DE LA PLAGE|2025-03-01":1397.2,"BOUTIQUE DE LA PLAGE|2025-03-02":1125.0,"BOUTIQUE DE LA PLAGE|2025-03-03":706.0,"BOUTIQUE DE LA PLAGE|2025-03-04":826.0,"BOUTIQUE DE LA PLAGE|2025-03-05":1259.9,"BOUTIQUE DE LA PLAGE|2025-03-06":402.0,"BOUTIQUE DE LA PLAGE|2025-03-07":898.0,"BOUTIQUE DE LA PLAGE|2025-03-08":936.2,"BOUTIQUE DE LA PLAGE|2025-03-09":1609.0,"BOUTIQUE DE LA PLAGE|2025-03-10":470.0,"BOUTIQUE DE LA PLAGE|2025-03-11":218.0,"BOUTIQUE DE LA PLAGE|2025-03-12":370.0,"BOUTIQUE DE LA PLAGE|2025-03-13":396.0,"BOUTIQUE DE LA PLAGE|2025-03-14":477.0,"BOUTIQUE DE LA PLAGE|2025-03-15":746.0,"BOUTIQUE DE LA PLAGE|2025-03-16":761.9,"BOUTIQUE DE LA PLAGE|2025-03-17":318.3,"BOUTIQUE DE LA PLAGE|2025-03-18":166.8,"BOUTIQUE DE LA PLAGE|2025-03-19":594.9,"BOUTIQUE DE LA PLAGE|2025-03-20":299.0,"BOUTIQUE DE LA PLAGE|2025-03-21":279.8,"BOUTIQUE DE LA PLAGE|2025-03-22":744.4,"BOUTIQUE DE LA PLAGE|2025-03-23":765.95,"BOUTIQUE DE LA PLAGE|2025-03-25":464.9,"BOUTIQUE DE LA PLAGE|2025-03-26":284.0,"BOUTIQUE DE LA PLAGE|2025-03-27":879.8,"BOUTIQUE DE LA PLAGE|2025-03-28":350.0,"BOUTIQUE DE LA PLAGE|2025-03-29":606.3,"BOUTIQUE DE LA PLAGE|2025-03-30":1711.55,"BOUTIQUE DE LA PLAGE|2025-03-31":660.8,"BOUTIQUE DE LA PLAGE|2025-04-01":786.9,"BOUTIQUE DE LA PLAGE|2025-04-02":837.04,"BOUTIQUE DE LA PLAGE|2025-04-03":211.0,"BOUTIQUE DE LA PLAGE|2025-04-04":896.9,"BOUTIQUE DE LA PLAGE|2025-04-05":2083.7,"BOUTIQUE DE LA PLAGE|2025-04-06":1784.7,"BOUTIQUE DE LA PLAGE|2025-04-07":723.8,"BOUTIQUE DE LA PLAGE|2025-04-08":1351.7,"BOUTIQUE DE LA PLAGE|2025-04-09":1389.5,"BOUTIQUE DE LA PLAGE|2025-04-10":1727.2,"BOUTIQUE DE LA PLAGE|2025-04-11":1377.55,"BOUTIQUE DE LA PLAGE|2025-04-12":1099.3,"BOUTIQUE DE LA PLAGE|2025-04-13":1093.7,"BOUTIQUE DE LA PLAGE|2025-04-14":968.35,"BOUTIQUE DE LA PLAGE|2025-04-15":652.8,"BOUTIQUE DE LA PLAGE|2025-04-16":1453.7,"BOUTIQUE DE LA PLAGE|2025-04-17":2442.3,"BOUTIQUE DE LA PLAGE|2025-04-18":3121.45,"BOUTIQUE DE LA PLAGE|2025-04-19":2023.2,"BOUTIQUE DE LA PLAGE|2025-04-20":1689.2,"BOUTIQUE DE LA PLAGE|2025-04-21":1964.8,"BOUTIQUE DE LA PLAGE|2025-04-22":1110.9,"BOUTIQUE DE LA PLAGE|2025-04-23":778.2,"BOUTIQUE DE LA PLAGE|2025-04-24":1113.8,"BOUTIQUE DE LA PLAGE|2025-04-25":2794.55,"BOUTIQUE DE LA PLAGE|2025-04-26":313.4,"BOUTIQUE DE LA PLAGE|2025-04-27":1041.0,"BOUTIQUE DE LA PLAGE|2025-04-28":1520.5,"BOUTIQUE DE LA PLAGE|2025-04-29":1533.59,"BOUTIQUE DE LA PLAGE|2025-04-30":2154.4,"BOUTIQUE DE LA PLAGE|2025-05-01":3166.1,"BOUTIQUE DE LA PLAGE|2025-05-02":1032.49,"BOUTIQUE DE LA PLAGE|2025-05-03":3780.0,"BOUTIQUE DE LA PLAGE|2025-05-04":1987.35,"BOUTIQUE DE LA PLAGE|2025-05-05":488.9,"BOUTIQUE DE LA PLAGE|2025-05-06":1314.6,"BOUTIQUE DE LA PLAGE|2025-05-07":1025.3,"BOUTIQUE DE LA PLAGE|2025-05-08":1966.55,"BOUTIQUE DE LA PLAGE|2025-05-09":966.8,"BOUTIQUE DE LA PLAGE|2025-05-10":1396.4,"BOUTIQUE DE LA PLAGE|2025-05-11":1198.65,"BOUTIQUE DE LA PLAGE|2025-05-12":1230.9,"BOUTIQUE DE LA PLAGE|2025-05-13":416.95,"BOUTIQUE DE LA PLAGE|2025-05-14":925.85,"BOUTIQUE DE LA PLAGE|2025-05-15":399.15,"BOUTIQUE DE LA PLAGE|2025-05-16":1152.55,"BOUTIQUE DE LA PLAGE|2025-05-17":1620.8,"BOUTIQUE DE LA PLAGE|2025-05-18":2790.65,"BOUTIQUE DE LA PLAGE|2025-05-19":288.2,"BOUTIQUE DE LA PLAGE|2025-05-20":979.39,"BOUTIQUE DE LA PLAGE|2025-05-21":645.9,"BOUTIQUE DE LA PLAGE|2025-05-22":499.7,"BOUTIQUE DE LA PLAGE|2025-05-23":1185.7,"BOUTIQUE DE LA PLAGE|2025-05-24":1480.2,"BOUTIQUE DE LA PLAGE|2025-05-25":2049.3,"BOUTIQUE DE LA PLAGE|2025-05-26":1036.85,"BOUTIQUE DE LA PLAGE|2025-05-27":1143.68,"BOUTIQUE DE LA PLAGE|2025-05-28":1800.6,"BOUTIQUE DE LA PLAGE|2025-05-29":3977.6,"BOUTIQUE DE LA PLAGE|2025-05-30":3721.07,"BOUTIQUE DE LA PLAGE|2025-05-31":3086.0,"BOUTIQUE DE LA PLAGE|2025-06-01":1723.0,"BOUTIQUE DE LA PLAGE|2025-06-02":482.9,"BOUTIQUE DE LA PLAGE|2025-06-03":1085.2,"BOUTIQUE DE LA PLAGE|2025-06-04":1268.7,"BOUTIQUE DE LA PLAGE|2025-06-05":880.8,"BOUTIQUE DE LA PLAGE|2025-06-06":1080.4,"BOUTIQUE DE LA PLAGE|2025-06-07":1731.4,"BOUTIQUE DE LA PLAGE|2025-06-08":2734.6,"BOUTIQUE DE LA PLAGE|2025-06-09":3036.95,"BOUTIQUE DE LA PLAGE|2025-06-10":1335.85,"BOUTIQUE DE LA PLAGE|2025-06-11":906.9,"BOUTIQUE DE LA PLAGE|2025-06-12":1261.4,"BOUTIQUE DE LA PLAGE|2025-06-13":1615.5,"BOUTIQUE DE LA PLAGE|2025-06-14":1228.75,"BOUTIQUE DE LA PLAGE|2025-06-15":1470.35,"BOUTIQUE DE LA PLAGE|2025-06-16":1201.0,"BOUTIQUE DE LA PLAGE|2025-06-17":1797.15,"BOUTIQUE DE LA PLAGE|2025-06-18":2175.1,"BOUTIQUE DE LA PLAGE|2025-06-19":2352.1,"BOUTIQUE DE LA PLAGE|2025-06-20":2297.1,"BOUTIQUE DE LA PLAGE|2025-06-21":2552.49,"BOUTIQUE DE LA PLAGE|2025-06-22":2502.3,"BOUTIQUE DE LA PLAGE|2025-06-23":1260.3,"BOUTIQUE DE LA PLAGE|2025-06-24":1732.8,"BOUTIQUE DE LA PLAGE|2025-06-25":2002.55,"BOUTIQUE DE LA PLAGE|2025-06-26":1658.95,"BOUTIQUE DE LA PLAGE|2025-06-27":2029.7,"BOUTIQUE DE LA PLAGE|2025-06-28":3202.09,"BOUTIQUE DE LA PLAGE|2025-06-29":2842.25,"BOUTIQUE DE LA PLAGE|2025-06-30":1452.35,"BOUTIQUE DE LA PLAGE|2025-07-01":2094.9,"BOUTIQUE DE LA PLAGE|2025-07-02":1475.65,"BOUTIQUE DE LA PLAGE|2025-07-03":1548.6,"BOUTIQUE DE LA PLAGE|2025-07-04":1576.0,"BOUTIQUE DE LA PLAGE|2025-07-05":3026.55,"BOUTIQUE DE LA PLAGE|2025-07-06":3411.35,"BOUTIQUE DE LA PLAGE|2025-07-07":2808.79,"BOUTIQUE DE LA PLAGE|2025-07-08":2743.8,"BOUTIQUE DE LA PLAGE|2025-07-09":2777.05,"BOUTIQUE DE LA PLAGE|2025-07-10":2881.2,"BOUTIQUE DE LA PLAGE|2025-07-11":3088.05,"BOUTIQUE DE LA PLAGE|2025-07-12":3528.7,"BOUTIQUE DE LA PLAGE|2025-07-13":5130.64,"BOUTIQUE DE LA PLAGE|2025-07-14":3068.15,"BOUTIQUE DE LA PLAGE|2025-07-15":3092.78,"BOUTIQUE DE LA PLAGE|2025-07-16":4074.8,"BOUTIQUE DE LA PLAGE|2025-07-17":4319.9,"BOUTIQUE DE LA PLAGE|2025-07-18":3559.9,"BOUTIQUE DE LA PLAGE|2025-07-19":3538.05,"BOUTIQUE DE LA PLAGE|2025-07-20":3749.09,"BOUTIQUE DE LA PLAGE|2025-07-21":3655.5,"BOUTIQUE DE LA PLAGE|2025-07-22":3700.55,"BOUTIQUE DE LA PLAGE|2025-07-23":1439.6,"BOUTIQUE DE LA PLAGE|2025-07-24":3295.75,"BOUTIQUE DE LA PLAGE|2025-07-25":3897.0,"BOUTIQUE DE LA PLAGE|2025-07-26":3217.7,"BOUTIQUE DE LA PLAGE|2025-07-27":3396.2,"BOUTIQUE DE LA PLAGE|2025-07-28":3641.32,"BOUTIQUE DE LA PLAGE|2025-07-29":3127.79,"BOUTIQUE DE LA PLAGE|2025-07-30":2382.05,"BOUTIQUE DE LA PLAGE|2025-07-31":4132.14,"BOUTIQUE DE LA PLAGE|2025-08-01":3869.28,"BOUTIQUE DE LA PLAGE|2025-08-02":4272.0,"BOUTIQUE DE LA PLAGE|2025-08-03":4922.6,"BOUTIQUE DE LA PLAGE|2025-08-04":5010.13,"BOUTIQUE DE LA PLAGE|2025-08-05":3648.49,"BOUTIQUE DE LA PLAGE|2025-08-06":4766.3,"BOUTIQUE DE LA PLAGE|2025-08-07":5265.45,"BOUTIQUE DE LA PLAGE|2025-08-08":5703.8,"BOUTIQUE DE LA PLAGE|2025-08-09":5622.5,"BOUTIQUE DE LA PLAGE|2025-08-10":6872.55,"BOUTIQUE DE LA PLAGE|2025-08-11":5527.1,"BOUTIQUE DE LA PLAGE|2025-08-12":3746.8,"BOUTIQUE DE LA PLAGE|2025-08-13":4388.52,"BOUTIQUE DE LA PLAGE|2025-08-14":4858.75,"BOUTIQUE DE LA PLAGE|2025-08-15":4187.15,"BOUTIQUE DE LA PLAGE|2025-08-16":4791.95,"BOUTIQUE DE LA PLAGE|2025-08-17":3918.4,"BOUTIQUE DE LA PLAGE|2025-08-18":4334.52,"BOUTIQUE DE LA PLAGE|2025-08-19":3445.18,"BOUTIQUE DE LA PLAGE|2025-08-20":3153.74,"BOUTIQUE DE LA PLAGE|2025-08-21":4457.7,"BOUTIQUE DE LA PLAGE|2025-08-22":4651.3,"BOUTIQUE DE LA PLAGE|2025-08-23":3627.59,"BOUTIQUE DE LA PLAGE|2025-08-24":3242.99,"BOUTIQUE DE LA PLAGE|2025-08-25":3733.39,"BOUTIQUE DE LA PLAGE|2025-08-26":2767.79,"BOUTIQUE DE LA PLAGE|2025-08-27":3113.16,"BOUTIQUE DE LA PLAGE|2025-08-28":2683.57,"BOUTIQUE DE LA PLAGE|2025-08-29":2208.48,"BOUTIQUE DE LA PLAGE|2025-08-30":1727.3,"BOUTIQUE DE LA PLAGE|2025-08-31":1123.99,"BOUTIQUE DE LA PLAGE|2025-09-01":1435.79,"BOUTIQUE DE LA PLAGE|2025-09-02":1137.2,"BOUTIQUE DE LA PLAGE|2025-09-03":1359.8,"BOUTIQUE DE LA PLAGE|2025-09-04":1424.9,"BOUTIQUE DE LA PLAGE|2025-09-05":2129.18,"BOUTIQUE DE LA PLAGE|2025-09-06":3096.2,"BOUTIQUE DE LA PLAGE|2025-09-07":2536.9,"BOUTIQUE DE LA PLAGE|2025-09-08":1020.79,"BOUTIQUE DE LA PLAGE|2025-09-09":1450.39,"BOUTIQUE DE LA PLAGE|2025-09-10":1086.97,"BOUTIQUE DE LA PLAGE|2025-09-11":1697.28,"BOUTIQUE DE LA PLAGE|2025-09-12":1541.19,"BOUTIQUE DE LA PLAGE|2025-09-13":1489.2,"BOUTIQUE DE LA PLAGE|2025-09-14":2157.69,"BOUTIQUE DE LA PLAGE|2025-09-15":1149.7,"BOUTIQUE DE LA PLAGE|2025-09-16":1667.19,"BOUTIQUE DE LA PLAGE|2025-09-17":1889.19,"BOUTIQUE DE LA PLAGE|2025-09-18":1726.3,"BOUTIQUE DE LA PLAGE|2025-09-19":1528.5,"BOUTIQUE DE LA PLAGE|2025-09-20":1499.1,"BOUTIQUE DE LA PLAGE|2025-09-21":986.0,"BOUTIQUE DE LA PLAGE|2025-09-22":1200.6,"BOUTIQUE DE LA PLAGE|2025-09-23":1042.6,"BOUTIQUE DE LA PLAGE|2025-09-24":872.8,"BOUTIQUE DE LA PLAGE|2025-09-25":1067.78,"BOUTIQUE DE LA PLAGE|2025-09-26":1033.08,"BOUTIQUE DE LA PLAGE|2025-09-27":1538.25,"BOUTIQUE DE LA PLAGE|2025-09-28":1622.0,"BOUTIQUE DE LA PLAGE|2025-09-29":1051.78,"BOUTIQUE DE LA PLAGE|2025-09-30":737.0,"BOUTIQUE DE LA PLAGE|2025-10-01":1104.9,"BOUTIQUE DE LA PLAGE|2025-10-02":973.6,"BOUTIQUE DE LA PLAGE|2025-10-03":858.9,"BOUTIQUE DE LA PLAGE|2025-10-04":739.0,"BOUTIQUE DE LA PLAGE|2025-10-05":1357.6,"BOUTIQUE DE LA PLAGE|2025-10-06":825.8,"BOUTIQUE DE LA PLAGE|2025-10-07":1193.2,"BOUTIQUE DE LA PLAGE|2025-10-08":807.0,"BOUTIQUE DE LA PLAGE|2025-10-09":1016.3,"BOUTIQUE DE LA PLAGE|2025-10-10":1018.4,"BOUTIQUE DE LA PLAGE|2025-10-11":1576.2,"BOUTIQUE DE LA PLAGE|2025-10-12":1754.88,"BOUTIQUE DE LA PLAGE|2025-10-13":1421.99,"BOUTIQUE DE LA PLAGE|2025-10-14":744.0,"BOUTIQUE DE LA PLAGE|2025-10-15":687.1,"BOUTIQUE DE LA PLAGE|2025-10-16":1073.7,"BOUTIQUE DE LA PLAGE|2025-10-17":881.0,"BOUTIQUE DE LA PLAGE|2025-10-18":1187.5,"BOUTIQUE DE LA PLAGE|2025-10-19":1176.8,"BOUTIQUE DE LA PLAGE|2025-10-20":801.0,"BOUTIQUE DE LA PLAGE|2025-10-21":1342.8,"BOUTIQUE DE LA PLAGE|2025-10-22":1663.5,"BOUTIQUE DE LA PLAGE|2025-10-24":1511.0,"BOUTIQUE DE LA PLAGE|2025-10-25":871.8,"BOUTIQUE DE LA PLAGE|2025-10-26":1078.37,"BOUTIQUE DE LA PLAGE|2025-10-27":978.39,"BOUTIQUE DE LA PLAGE|2025-10-28":1178.9,"BOUTIQUE DE LA PLAGE|2025-10-29":724.9,"BOUTIQUE DE LA PLAGE|2025-10-30":1469.3,"BOUTIQUE DE LA PLAGE|2025-10-31":1111.9,"BOUTIQUE DE LA PLAGE|2025-11-01":1164.99,"BOUTIQUE DE LA PLAGE|2025-11-02":870.4,"BOUTIQUE DE LA PLAGE|2025-11-03":354.9,"BOUTIQUE DE LA PLAGE|2025-11-04":127.0,"BOUTIQUE DE LA PLAGE|2025-11-05":508.0,"BOUTIQUE DE LA PLAGE|2025-11-06":420.9,"BOUTIQUE DE LA PLAGE|2025-11-08":635.8,"BOUTIQUE DE LA PLAGE|2025-11-09":1380.9,"BOUTIQUE DE LA PLAGE|2025-11-10":882.0,"BOUTIQUE DE LA PLAGE|2025-11-11":897.0,"BOUTIQUE DE LA PLAGE|2025-11-12":174.0,"BOUTIQUE DE LA PLAGE|2025-11-13":140.0,"BOUTIQUE DE LA PLAGE|2025-11-14":142.0,"BOUTIQUE DE LA PLAGE|2025-11-15":739.0,"BOUTIQUE DE LA PLAGE|2025-11-28":237.0,"BOUTIQUE DE LA PLAGE|2025-11-29":647.0,"BOUTIQUE DE LA PLAGE|2025-11-30":161.0,"BOUTIQUE DE LA PLAGE|2025-12-01":304.0,"BOUTIQUE DE LA PLAGE|2025-12-02":103.0,"BOUTIQUE DE LA PLAGE|2025-12-05":172.0,"BOUTIQUE DE LA PLAGE|2025-12-06":675.0,"BOUTIQUE DE LA PLAGE|2025-12-07":1172.0,"BOUTIQUE DE LA PLAGE|2025-12-08":928.8,"BOUTIQUE DE LA PLAGE|2025-12-09":200.0,"BOUTIQUE DE LA PLAGE|2025-12-10":20.0,"BOUTIQUE DE LA PLAGE|2025-12-11":289.0,"BOUTIQUE DE LA PLAGE|2025-12-12":340.0,"BOUTIQUE DE LA PLAGE|2025-12-13":485.0,"BOUTIQUE DE LA PLAGE|2025-12-14":1104.0,"BOUTIQUE DE LA PLAGE|2025-12-15":215.0,"BOUTIQUE DE LA PLAGE|2025-12-16":89.9,"BOUTIQUE DE LA PLAGE|2025-12-17":325.0,"BOUTIQUE DE LA PLAGE|2025-12-18":317.0,"BOUTIQUE DE LA PLAGE|2025-12-19":101.0,"BOUTIQUE DE LA PLAGE|2025-12-20":693.9,"BOUTIQUE DE LA PLAGE|2025-12-21":314.0,"BOUTIQUE DE LA PLAGE|2025-12-22":522.0,"BOUTIQUE DE LA PLAGE|2025-12-23":110.0,"BOUTIQUE DE LA PLAGE|2025-12-24":545.0,"BOUTIQUE DE LA PLAGE|2025-12-26":725.0,"BOUTIQUE DE LA PLAGE|2025-12-27":895.9,"BOUTIQUE DE LA PLAGE|2025-12-28":1820.9,"BOUTIQUE DE LA PLAGE|2025-12-29":1238.0,"BOUTIQUE DE LA PLAGE|2025-12-30":651.0,"BOUTIQUE DE LA PLAGE|2025-12-31":1226.0,"COMPTOIR DES OCEANS|2025-04-01":278.27,"COMPTOIR DES OCEANS|2025-04-03":315.6,"COMPTOIR DES OCEANS|2025-04-04":407.0,"COMPTOIR DES OCEANS|2025-04-05":773.93,"COMPTOIR DES OCEANS|2025-04-06":575.98,"COMPTOIR DES OCEANS|2025-04-07":379.82,"COMPTOIR DES OCEANS|2025-04-08":612.95,"COMPTOIR DES OCEANS|2025-04-09":558.59,"COMPTOIR DES OCEANS|2025-04-10":1296.41,"COMPTOIR DES OCEANS|2025-04-11":1154.25,"COMPTOIR DES OCEANS|2025-04-12":664.75,"COMPTOIR DES OCEANS|2025-04-13":874.53,"COMPTOIR DES OCEANS|2025-04-14":965.74,"COMPTOIR DES OCEANS|2025-04-15":294.39,"COMPTOIR DES OCEANS|2025-04-16":1194.65,"COMPTOIR DES OCEANS|2025-04-17":1654.07,"COMPTOIR DES OCEANS|2025-04-18":2526.41,"COMPTOIR DES OCEANS|2025-04-19":1620.12,"COMPTOIR DES OCEANS|2025-04-20":1304.73,"COMPTOIR DES OCEANS|2025-04-21":1680.34,"COMPTOIR DES OCEANS|2025-04-22":922.77,"COMPTOIR DES OCEANS|2025-04-23":877.82,"COMPTOIR DES OCEANS|2025-04-24":1331.6,"COMPTOIR DES OCEANS|2025-04-25":1667.7,"COMPTOIR DES OCEANS|2025-04-26":820.46,"COMPTOIR DES OCEANS|2025-04-27":549.57,"COMPTOIR DES OCEANS|2025-04-28":1479.87,"COMPTOIR DES OCEANS|2025-04-29":1556.62,"COMPTOIR DES OCEANS|2025-04-30":1835.28,"COMPTOIR DES OCEANS|2025-05-01":2528.48,"COMPTOIR DES OCEANS|2025-05-02":1796.34,"COMPTOIR DES OCEANS|2025-05-03":2706.01,"COMPTOIR DES OCEANS|2025-05-04":1483.45,"COMPTOIR DES OCEANS|2025-05-05":734.69,"COMPTOIR DES OCEANS|2025-05-06":636.08,"COMPTOIR DES OCEANS|2025-05-07":663.86,"COMPTOIR DES OCEANS|2025-05-08":1111.16,"COMPTOIR DES OCEANS|2025-05-09":962.65,"COMPTOIR DES OCEANS|2025-05-10":1289.24,"COMPTOIR DES OCEANS|2025-05-11":1209.15,"COMPTOIR DES OCEANS|2025-05-12":778.87,"COMPTOIR DES OCEANS|2025-05-13":498.16,"COMPTOIR DES OCEANS|2025-05-14":1017.67,"COMPTOIR DES OCEANS|2025-05-15":381.9,"COMPTOIR DES OCEANS|2025-05-16":607.73,"COMPTOIR DES OCEANS|2025-05-17":1008.94,"COMPTOIR DES OCEANS|2025-05-18":2701.37,"COMPTOIR DES OCEANS|2025-05-19":366.87,"COMPTOIR DES OCEANS|2025-05-20":1586.02,"COMPTOIR DES OCEANS|2025-05-21":672.57,"COMPTOIR DES OCEANS|2025-05-22":700.79,"COMPTOIR DES OCEANS|2025-05-23":571.56,"COMPTOIR DES OCEANS|2025-05-24":866.89,"COMPTOIR DES OCEANS|2025-05-25":1225.37,"COMPTOIR DES OCEANS|2025-05-26":585.38,"COMPTOIR DES OCEANS|2025-05-27":867.16,"COMPTOIR DES OCEANS|2025-05-28":1200.94,"COMPTOIR DES OCEANS|2025-05-29":2444.63,"COMPTOIR DES OCEANS|2025-05-30":4106.61,"COMPTOIR DES OCEANS|2025-05-31":2683.87,"COMPTOIR DES OCEANS|2025-06-01":1890.59,"COMPTOIR DES OCEANS|2025-06-02":503.18,"COMPTOIR DES OCEANS|2025-06-03":717.3,"COMPTOIR DES OCEANS|2025-06-04":457.75,"COMPTOIR DES OCEANS|2025-06-05":1409.37,"COMPTOIR DES OCEANS|2025-06-06":966.74,"COMPTOIR DES OCEANS|2025-06-07":1078.15,"COMPTOIR DES OCEANS|2025-06-08":2104.34,"COMPTOIR DES OCEANS|2025-06-09":2262.47,"COMPTOIR DES OCEANS|2025-06-10":1511.95,"COMPTOIR DES OCEANS|2025-06-11":1063.33,"COMPTOIR DES OCEANS|2025-06-12":1168.82,"COMPTOIR DES OCEANS|2025-06-13":1220.74,"COMPTOIR DES OCEANS|2025-06-14":1733.91,"COMPTOIR DES OCEANS|2025-06-15":1209.55,"COMPTOIR DES OCEANS|2025-06-16":878.64,"COMPTOIR DES OCEANS|2025-06-17":1041.35,"COMPTOIR DES OCEANS|2025-06-18":1590.06,"COMPTOIR DES OCEANS|2025-06-19":1287.46,"COMPTOIR DES OCEANS|2025-06-20":1738.82,"COMPTOIR DES OCEANS|2025-06-21":1927.19,"COMPTOIR DES OCEANS|2025-06-22":1927.53,"COMPTOIR DES OCEANS|2025-06-23":914.4,"COMPTOIR DES OCEANS|2025-06-24":1343.03,"COMPTOIR DES OCEANS|2025-06-25":1351.98,"COMPTOIR DES OCEANS|2025-06-26":1635.86,"COMPTOIR DES OCEANS|2025-06-27":1944.76,"COMPTOIR DES OCEANS|2025-06-28":2780.06,"COMPTOIR DES OCEANS|2025-06-29":3300.9,"COMPTOIR DES OCEANS|2025-06-30":2202.02,"COMPTOIR DES OCEANS|2025-07-01":1562.84,"COMPTOIR DES OCEANS|2025-07-02":1592.47,"COMPTOIR DES OCEANS|2025-07-03":1776.24,"COMPTOIR DES OCEANS|2025-07-04":2126.35,"COMPTOIR DES OCEANS|2025-07-05":3238.43,"COMPTOIR DES OCEANS|2025-07-06":3157.58,"COMPTOIR DES OCEANS|2025-07-07":2574.39,"COMPTOIR DES OCEANS|2025-07-08":2649.69,"COMPTOIR DES OCEANS|2025-07-09":3314.66,"COMPTOIR DES OCEANS|2025-07-10":3643.81,"COMPTOIR DES OCEANS|2025-07-11":4292.32,"COMPTOIR DES OCEANS|2025-07-12":3381.28,"COMPTOIR DES OCEANS|2025-07-13":2715.68,"COMPTOIR DES OCEANS|2025-07-14":3701.07,"COMPTOIR DES OCEANS|2025-07-15":3779.04,"COMPTOIR DES OCEANS|2025-07-16":3985.32,"COMPTOIR DES OCEANS|2025-07-17":5140.28,"COMPTOIR DES OCEANS|2025-07-18":5159.57,"COMPTOIR DES OCEANS|2025-07-19":4171.1,"COMPTOIR DES OCEANS|2025-07-20":4192.13,"COMPTOIR DES OCEANS|2025-07-21":3684.21,"COMPTOIR DES OCEANS|2025-07-22":5261.82,"COMPTOIR DES OCEANS|2025-07-23":2523.95,"COMPTOIR DES OCEANS|2025-07-24":3982.79,"COMPTOIR DES OCEANS|2025-07-25":4624.36,"COMPTOIR DES OCEANS|2025-07-26":3446.42,"COMPTOIR DES OCEANS|2025-07-27":3294.05,"COMPTOIR DES OCEANS|2025-07-28":3707.83,"COMPTOIR DES OCEANS|2025-07-29":4192.99,"COMPTOIR DES OCEANS|2025-07-30":3602.64,"COMPTOIR DES OCEANS|2025-07-31":4607.8,"COMPTOIR DES OCEANS|2025-08-01":5399.89,"COMPTOIR DES OCEANS|2025-08-02":4312.54,"COMPTOIR DES OCEANS|2025-08-03":5168.83,"COMPTOIR DES OCEANS|2025-08-04":5199.16,"COMPTOIR DES OCEANS|2025-08-05":4853.53,"COMPTOIR DES OCEANS|2025-08-06":5711.32,"COMPTOIR DES OCEANS|2025-08-07":6037.01,"COMPTOIR DES OCEANS|2025-08-08":7253.8,"COMPTOIR DES OCEANS|2025-08-09":6406.63,"COMPTOIR DES OCEANS|2025-08-10":5437.25,"COMPTOIR DES OCEANS|2025-08-11":6951.25,"COMPTOIR DES OCEANS|2025-08-12":6036.29,"COMPTOIR DES OCEANS|2025-08-13":6387.75,"COMPTOIR DES OCEANS|2025-08-14":6790.64,"COMPTOIR DES OCEANS|2025-08-15":6475.9,"COMPTOIR DES OCEANS|2025-08-16":6173.24,"COMPTOIR DES OCEANS|2025-08-17":4968.81,"COMPTOIR DES OCEANS|2025-08-18":4964.63,"COMPTOIR DES OCEANS|2025-08-19":4482.34,"COMPTOIR DES OCEANS|2025-08-20":4786.02,"COMPTOIR DES OCEANS|2025-08-21":3870.59,"COMPTOIR DES OCEANS|2025-08-22":5714.87,"COMPTOIR DES OCEANS|2025-08-23":4481.81,"COMPTOIR DES OCEANS|2025-08-24":3860.06,"COMPTOIR DES OCEANS|2025-08-25":4406.17,"COMPTOIR DES OCEANS|2025-08-26":3065.18,"COMPTOIR DES OCEANS|2025-08-27":4005.4,"COMPTOIR DES OCEANS|2025-08-28":2327.02,"COMPTOIR DES OCEANS|2025-08-29":2430.66,"COMPTOIR DES OCEANS|2025-08-30":2215.72,"COMPTOIR DES OCEANS|2025-08-31":1221.91,"COMPTOIR DES OCEANS|2025-09-01":1289.7,"COMPTOIR DES OCEANS|2025-09-02":1763.03,"COMPTOIR DES OCEANS|2025-09-03":1640.9,"COMPTOIR DES OCEANS|2025-09-04":1271.0,"COMPTOIR DES OCEANS|2025-09-05":1881.43,"COMPTOIR DES OCEANS|2025-09-06":2158.44,"COMPTOIR DES OCEANS|2025-09-07":1838.56,"COMPTOIR DES OCEANS|2025-09-08":1032.64,"COMPTOIR DES OCEANS|2025-09-09":1595.56,"COMPTOIR DES OCEANS|2025-09-10":1347.16,"COMPTOIR DES OCEANS|2025-09-11":1668.37,"COMPTOIR DES OCEANS|2025-09-12":1228.6,"COMPTOIR DES OCEANS|2025-09-13":1191.22,"COMPTOIR DES OCEANS|2025-09-14":1033.34,"COMPTOIR DES OCEANS|2025-09-15":915.03,"COMPTOIR DES OCEANS|2025-09-16":1010.71,"COMPTOIR DES OCEANS|2025-09-17":1037.94,"COMPTOIR DES OCEANS|2025-09-18":1771.8,"COMPTOIR DES OCEANS|2025-09-19":1448.27,"COMPTOIR DES OCEANS|2025-09-20":1057.55,"COMPTOIR DES OCEANS|2025-09-21":506.51,"COMPTOIR DES OCEANS|2025-09-22":699.26,"COMPTOIR DES OCEANS|2025-09-23":1105.72,"COMPTOIR DES OCEANS|2025-09-24":656.76,"COMPTOIR DES OCEANS|2025-09-25":555.74,"COMPTOIR DES OCEANS|2025-09-26":804.95,"COMPTOIR DES OCEANS|2025-09-27":873.69,"COMPTOIR DES OCEANS|2025-09-28":940.93,"COMPTOIR DES OCEANS|2025-09-29":461.84,"COMPTOIR DES OCEANS|2025-09-30":344.0,"COMPTOIR DES OCEANS|2025-10-01":353.93,"COMPTOIR DES OCEANS|2025-10-03":392.9,"COMPTOIR DES OCEANS|2025-10-04":532.97,"COMPTOIR DES OCEANS|2025-10-05":698.81,"COMPTOIR DES OCEANS|2025-10-06":373.57,"COMPTOIR DES OCEANS|2025-10-07":619.35,"COMPTOIR DES OCEANS|2025-10-08":618.34,"COMPTOIR DES OCEANS|2025-10-09":341.79,"COMPTOIR DES OCEANS|2025-10-10":819.25,"COMPTOIR DES OCEANS|2025-10-11":697.33,"COMPTOIR DES OCEANS|2025-10-12":855.99,"COMPTOIR DES OCEANS|2025-10-13":469.54,"COMPTOIR DES OCEANS|2025-10-14":960.34,"COMPTOIR DES OCEANS|2025-10-15":657.57,"COMPTOIR DES OCEANS|2025-10-17":538.14,"COMPTOIR DES OCEANS|2025-10-18":848.74,"COMPTOIR DES OCEANS|2025-10-19":800.18,"COMPTOIR DES OCEANS|2025-10-20":735.35,"COMPTOIR DES OCEANS|2025-10-21":739.49,"COMPTOIR DES OCEANS|2025-10-22":678.89,"COMPTOIR DES OCEANS|2025-10-24":1047.8,"COMPTOIR DES OCEANS|2025-10-25":826.76,"COMPTOIR DES OCEANS|2025-10-26":551.95,"COMPTOIR DES OCEANS|2025-10-27":387.68,"COMPTOIR DES OCEANS|2025-10-28":773.34,"COMPTOIR DES OCEANS|2025-10-29":501.63,"COMPTOIR DES OCEANS|2025-10-30":453.16,"HONDARTZA|2025-05-29":1022.0,"HONDARTZA|2025-05-30":1155.2,"HONDARTZA|2025-05-31":920.4,"HONDARTZA|2025-06-01":112.0,"HONDARTZA|2025-06-03":160.0,"HONDARTZA|2025-06-04":93.4,"HONDARTZA|2025-06-05":183.2,"HONDARTZA|2025-06-06":133.0,"HONDARTZA|2025-06-07":300.5,"HONDARTZA|2025-06-08":440.0,"HONDARTZA|2025-06-09":535.2,"HONDARTZA|2025-06-10":299.0,"HONDARTZA|2025-06-13":266.8,"HONDARTZA|2025-06-16":244.99,"HONDARTZA|2025-06-17":353.0,"HONDARTZA|2025-06-19":200.0,"HONDARTZA|2025-06-20":200.0,"HONDARTZA|2025-06-21":435.0,"HONDARTZA|2025-06-22":404.0,"HONDARTZA|2025-06-23":150.0,"HONDARTZA|2025-06-24":150.0,"HONDARTZA|2025-06-25":100.0,"HONDARTZA|2025-06-28":765.99,"HONDARTZA|2025-06-29":2392.99,"HONDARTZA|2025-06-30":710.0,"HONDARTZA|2025-07-01":513.02,"HONDARTZA|2025-07-02":252.0,"HONDARTZA|2025-07-03":431.0,"HONDARTZA|2025-07-04":511.0,"HONDARTZA|2025-07-05":983.79,"HONDARTZA|2025-07-06":1326.0,"HONDARTZA|2025-07-08":987.99,"HONDARTZA|2025-07-09":1506.28,"HONDARTZA|2025-07-10":1435.1,"HONDARTZA|2025-07-11":1051.5,"HONDARTZA|2025-07-12":922.0,"HONDARTZA|2025-07-13":1500.4,"HONDARTZA|2025-07-14":429.0,"HONDARTZA|2025-07-15":630.0,"HONDARTZA|2025-07-16":1354.99,"HONDARTZA|2025-07-17":1434.49,"HONDARTZA|2025-07-18":859.0,"HONDARTZA|2025-07-19":475.4,"HONDARTZA|2025-07-20":281.4,"HONDARTZA|2025-07-21":598.0,"HONDARTZA|2025-07-22":1380.0,"HONDARTZA|2025-07-25":374.81,"HONDARTZA|2025-07-26":633.49,"HONDARTZA|2025-07-27":604.38,"HONDARTZA|2025-07-28":598.4,"HONDARTZA|2025-07-29":610.4,"HONDARTZA|2025-07-30":656.4,"HONDARTZA|2025-07-31":1306.77,"HONDARTZA|2025-08-01":753.2,"HONDARTZA|2025-08-02":1141.0,"HONDARTZA|2025-08-03":1922.84,"HONDARTZA|2025-08-04":2453.48,"HONDARTZA|2025-08-05":1484.2,"HONDARTZA|2025-08-06":1148.89,"HONDARTZA|2025-08-07":1357.69,"HONDARTZA|2025-08-08":1587.2,"HONDARTZA|2025-08-09":1361.99,"HONDARTZA|2025-08-10":1950.87,"HONDARTZA|2025-08-11":2531.48,"HONDARTZA|2025-08-12":2345.4,"HONDARTZA|2025-08-13":946.8,"HONDARTZA|2025-08-14":1106.6,"HONDARTZA|2025-08-15":1910.3,"HONDARTZA|2025-08-16":1423.0,"HONDARTZA|2025-08-17":1402.18,"HONDARTZA|2025-08-18":707.4,"HONDARTZA|2025-08-20":274.0,"HONDARTZA|2025-08-22":927.9,"HONDARTZA|2025-08-23":1253.98,"HONDARTZA|2025-08-24":2090.87,"HONDARTZA|2025-08-25":1056.49,"HONDARTZA|2025-08-26":322.0,"HONDARTZA|2025-08-27":85.0,"HONDARTZA|2025-08-30":445.99,"HONDARTZA|2025-09-02":291.0,"HONDARTZA|2025-09-03":326.0,"HONDARTZA|2025-09-09":250.5,"HONDARTZA|2025-09-14":233.0};
+const DATA_2026 = {"BOUTIQUE DE LA PLAGE|2026-01-02":508.0,"BOUTIQUE DE LA PLAGE|2026-01-03":776.8,"BOUTIQUE DE LA PLAGE|2026-01-04":787.0,"BOUTIQUE DE LA PLAGE|2026-01-05":441.0,"BOUTIQUE DE LA PLAGE|2026-01-06":18.0,"BOUTIQUE DE LA PLAGE|2026-01-07":125.0,"BOUTIQUE DE LA PLAGE|2026-01-08":124.0,"BOUTIQUE DE LA PLAGE|2026-01-10":286.0,"BOUTIQUE DE LA PLAGE|2026-01-11":721.8,"BOUTIQUE DE LA PLAGE|2026-01-12":39.0,"BOUTIQUE DE LA PLAGE|2026-01-13":239.0,"BOUTIQUE DE LA PLAGE|2026-01-14":244.0,"BOUTIQUE DE LA PLAGE|2026-01-15":123.0,"BOUTIQUE DE LA PLAGE|2026-01-16":315.0,"BOUTIQUE DE LA PLAGE|2026-01-17":352.0,"BOUTIQUE DE LA PLAGE|2026-01-18":910.0,"BOUTIQUE DE LA PLAGE|2026-01-19":69.0,"BOUTIQUE DE LA PLAGE|2026-01-20":362.0,"BOUTIQUE DE LA PLAGE|2026-01-21":30.0,"BOUTIQUE DE LA PLAGE|2026-01-22":231.0,"BOUTIQUE DE LA PLAGE|2026-01-23":470.0,"BOUTIQUE DE LA PLAGE|2026-01-24":486.0,"BOUTIQUE DE LA PLAGE|2026-01-25":110.0,"BOUTIQUE DE LA PLAGE|2026-01-26":54.0,"BOUTIQUE DE LA PLAGE|2026-01-27":40.0,"BOUTIQUE DE LA PLAGE|2026-01-31":45.0,"BOUTIQUE DE LA PLAGE|2026-02-01":1028.8,"BOUTIQUE DE LA PLAGE|2026-02-02":30.0,"BOUTIQUE DE LA PLAGE|2026-02-03":157.9,"BOUTIQUE DE LA PLAGE|2026-02-05":20.0,"BOUTIQUE DE LA PLAGE|2026-02-06":749.6,"BOUTIQUE DE LA PLAGE|2026-02-07":1065.4,"BOUTIQUE DE LA PLAGE|2026-02-08":131.0,"BOUTIQUE DE LA PLAGE|2026-02-09":325.0,"BOUTIQUE DE LA PLAGE|2026-02-10":207.0,"BOUTIQUE DE LA PLAGE|2026-02-11":355.0,"BOUTIQUE DE LA PLAGE|2026-02-12":460.0,"BOUTIQUE DE LA PLAGE|2026-02-13":44.0,"BOUTIQUE DE LA PLAGE|2026-02-14":339.0,"BOUTIQUE DE LA PLAGE|2026-02-15":969.8,"BOUTIQUE DE LA PLAGE|2026-02-16":15.0,"BOUTIQUE DE LA PLAGE|2026-02-17":307.0,"BOUTIQUE DE LA PLAGE|2026-02-20":115.8,"BOUTIQUE DE LA PLAGE|2026-02-21":1300.99,"BOUTIQUE DE LA PLAGE|2026-02-22":1050.98,"BOUTIQUE DE LA PLAGE|2026-02-23":576.2,"BOUTIQUE DE LA PLAGE|2026-02-24":545.4,"BOUTIQUE DE LA PLAGE|2026-02-25":718.0,"BOUTIQUE DE LA PLAGE|2026-02-26":788.0,"BOUTIQUE DE LA PLAGE|2026-02-27":396.4,"BOUTIQUE DE LA PLAGE|2026-02-28":933.39,"BOUTIQUE DE LA PLAGE|2026-03-01":1430.0,"BOUTIQUE DE LA PLAGE|2026-03-02":397.2,"BOUTIQUE DE LA PLAGE|2026-03-03":425.4,"BOUTIQUE DE LA PLAGE|2026-03-04":774.99,"BOUTIQUE DE LA PLAGE|2026-03-05":172.0,"BOUTIQUE DE LA PLAGE|2026-03-06":197.0,"BOUTIQUE DE LA PLAGE|2026-03-07":572.0,"BOUTIQUE DE LA PLAGE|2026-03-08":766.0,"BOUTIQUE DE LA PLAGE|2026-03-09":465.4,"BOUTIQUE DE LA PLAGE|2026-03-10":720.4,"BOUTIQUE DE LA PLAGE|2026-03-11":136.0,"BOUTIQUE DE LA PLAGE|2026-03-12":603.37,"BOUTIQUE DE LA PLAGE|2026-03-13":538.0,"BOUTIQUE DE LA PLAGE|2026-03-14":563.0,"BOUTIQUE DE LA PLAGE|2026-03-15":620.6,"BOUTIQUE DE LA PLAGE|2026-03-16":188.8,"BOUTIQUE DE LA PLAGE|2026-03-17":754.8,"BOUTIQUE DE LA PLAGE|2026-03-18":817.4,"BOUTIQUE DE LA PLAGE|2026-03-19":1341.39,"BOUTIQUE DE LA PLAGE|2026-03-20":871.0,"BOUTIQUE DE LA PLAGE|2026-03-21":1448.3,"BOUTIQUE DE LA PLAGE|2026-03-22":1920.4,"BOUTIQUE DE LA PLAGE|2026-03-23":269.4,"BOUTIQUE DE LA PLAGE|2026-03-24":528.6,"BOUTIQUE DE LA PLAGE|2026-03-25":122.9,"BOUTIQUE DE LA PLAGE|2026-03-26":582.4,"BOUTIQUE DE LA PLAGE|2026-03-28":422.0,"BOUTIQUE DE LA PLAGE|2026-03-29":689.0,"BOUTIQUE DE LA PLAGE|2026-03-30":252.6,"BOUTIQUE DE LA PLAGE|2026-03-31":613.9,"BOUTIQUE DE LA PLAGE|2026-04-01":744.4,"BOUTIQUE DE LA PLAGE|2026-04-02":438.0,"BOUTIQUE DE LA PLAGE|2026-04-03":1027.59,"BOUTIQUE DE LA PLAGE|2026-04-04":3564.47,"BOUTIQUE DE LA PLAGE|2026-04-05":3165.01,"BOUTIQUE DE LA PLAGE|2026-04-06":4671.79,"BOUTIQUE DE LA PLAGE|2026-04-07":1338.7,"BOUTIQUE DE LA PLAGE|2026-04-08":1741.88,"BOUTIQUE DE LA PLAGE|2026-04-09":1814.99,"BOUTIQUE DE LA PLAGE|2026-04-10":1385.77,"BOUTIQUE DE LA PLAGE|2026-04-11":191.0,"BOUTIQUE DE LA PLAGE|2026-04-12":576.49,"BOUTIQUE DE LA PLAGE|2026-04-13":445.2,"BOUTIQUE DE LA PLAGE|2026-04-14":1372.58,"BOUTIQUE DE LA PLAGE|2026-04-15":1162.38,"BOUTIQUE DE LA PLAGE|2026-04-16":1689.03,"BOUTIQUE DE LA PLAGE|2026-04-17":1330.28,"BOUTIQUE DE LA PLAGE|2026-04-18":1531.1,"BOUTIQUE DE LA PLAGE|2026-04-19":2237.47,"BOUTIQUE DE LA PLAGE|2026-04-20":1472.5,"BOUTIQUE DE LA PLAGE|2026-04-21":1657.69,"BOUTIQUE DE LA PLAGE|2026-04-22":1025.9,"BOUTIQUE DE LA PLAGE|2026-04-23":1819.55,"BOUTIQUE DE LA PLAGE|2026-04-24":2255.06,"BOUTIQUE DE LA PLAGE|2026-04-25":1505.6,"BOUTIQUE DE LA PLAGE|2026-04-26":1110.45,"BOUTIQUE DE LA PLAGE|2026-04-27":731.12,"BOUTIQUE DE LA PLAGE|2026-04-28":952.09,"BOUTIQUE DE LA PLAGE|2026-04-29":968.8,"BOUTIQUE DE LA PLAGE|2026-04-30":1303.09,"COMPTOIR DES OCEANS|2026-04-02":542.37,"COMPTOIR DES OCEANS|2026-04-03":427.93,"COMPTOIR DES OCEANS|2026-04-04":1422.4,"COMPTOIR DES OCEANS|2026-04-05":1263.9,"COMPTOIR DES OCEANS|2026-04-06":1708.92,"COMPTOIR DES OCEANS|2026-04-07":806.35,"COMPTOIR DES OCEANS|2026-04-08":859.8,"COMPTOIR DES OCEANS|2026-04-09":997.72,"COMPTOIR DES OCEANS|2026-04-10":1284.75,"COMPTOIR DES OCEANS|2026-04-11":291.76,"COMPTOIR DES OCEANS|2026-04-12":497.72,"COMPTOIR DES OCEANS|2026-04-13":279.27,"COMPTOIR DES OCEANS|2026-04-14":445.63,"COMPTOIR DES OCEANS|2026-04-15":485.31,"COMPTOIR DES OCEANS|2026-04-16":1730.74,"COMPTOIR DES OCEANS|2026-04-17":1151.07,"COMPTOIR DES OCEANS|2026-04-18":1143.51,"COMPTOIR DES OCEANS|2026-04-19":1153.02,"COMPTOIR DES OCEANS|2026-04-20":765.12,"COMPTOIR DES OCEANS|2026-04-21":1239.86,"COMPTOIR DES OCEANS|2026-04-22":1122.89,"COMPTOIR DES OCEANS|2026-04-23":1703.79,"COMPTOIR DES OCEANS|2026-04-24":1332.45,"COMPTOIR DES OCEANS|2026-04-25":1023.26,"COMPTOIR DES OCEANS|2026-04-26":1185.74,"COMPTOIR DES OCEANS|2026-04-27":514.94,"COMPTOIR DES OCEANS|2026-04-28":876.41,"COMPTOIR DES OCEANS|2026-04-29":837.62,"COMPTOIR DES OCEANS|2026-04-30":1164.3,"BOUTIQUE DE LA PLAGE|2026-05-01":3887.47,"BOUTIQUE DE LA PLAGE|2026-05-02":921.17,"BOUTIQUE DE LA PLAGE|2026-05-03":1612.09,"BOUTIQUE DE LA PLAGE|2026-05-04":284.4,"BOUTIQUE DE LA PLAGE|2026-05-05":564.6,"BOUTIQUE DE LA PLAGE|2026-05-06":560.16,"BOUTIQUE DE LA PLAGE|2026-05-07":681.3,"BOUTIQUE DE LA PLAGE|2026-05-08":1295.46,"BOUTIQUE DE LA PLAGE|2026-05-09":1509.4,"BOUTIQUE DE LA PLAGE|2026-05-10":1267.5,"COMPTOIR DES OCEANS|2026-05-02":1204.87,"COMPTOIR DES OCEANS|2026-05-03":1282.87,"COMPTOIR DES OCEANS|2026-05-04":294.16,"COMPTOIR DES OCEANS|2026-05-05":740.71};
+
+function get2025Monthly(store, month) {
+  // month = '2025-05'
+  let total = 0, days = 0;
+  for (const [key, val] of Object.entries(DATA_2025)) {
+    const [s, date] = key.split('|');
+    if ((store === 'all' || s === store) && date.startsWith(month.replace('2026','2025'))) {
+      total += val; days++;
+    }
+  }
+  return {total: Math.round(total * 100) / 100, days};
+}
+
+function get2025UpToDay(store, month, day) {
+  const month2025 = month.replace('2026','2025');
+  let total = 0, days = 0;
+  for (const [key, val] of Object.entries(DATA_2025)) {
+    const [s, date] = key.split('|');
+    const d = parseInt(date.slice(8,10));
+    if ((store === 'all' || s === store) && date.startsWith(month2025) && d <= day) {
+      total += val; days++;
+    }
+  }
+  return {total: Math.round(total * 100) / 100, days};
+}
+
+function get2026Monthly(store, month) {
+  let total = 0, days = new Set();
+  // From imported Excel data
+  for (const [key, val] of Object.entries(DATA_2026)) {
+    const [s, date] = key.split('|');
+    if ((store === 'all' || s === store) && date.startsWith(month)) {
+      total += val; days.add(date);
+    }
+  }
+  // From live app entries (override Excel if same date+store)
+  const liveKeys = new Set();
+  entries.forEach(e => {
+    if ((store === 'all' || e.magasin === store) && e.mois === month) {
+      const key = e.magasin + '|' + e.date;
+      if (!liveKeys.has(key)) { liveKeys.add(key); days.add(e.date); }
+      total += e.total;
+    }
+  });
+  return {total: Math.round(total * 100) / 100, days: days.size};
+}
+
+function get2025DailyAvg(store, month) {
+  const d = get2025Monthly(store, month);
+  return d.days > 0 ? Math.round(d.total / d.days) : 0;
+}
+
+function get2026DailyAvg(store, month) {
+  const d = get2026Monthly(store, month);
+  return d.days > 0 ? Math.round(d.total / d.days) : 0;
+}
+
+let compStore = 'all';
+function setCompStore(s, el) {
+  compStore = s;
+  document.querySelectorAll('#view-comp .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderComp();
+}
+
+function renderComp() {
+  const el = document.getElementById('comp-content');
+  if (!el) return;
+
+  const now = new Date();
+  const currentMonth = now.toISOString().slice(0,7);
+  const months = [];
+  // Show all months with data in either year
+  const allMonths2026 = [...new Set(entries.map(e => e.mois))].sort();
+  const months2025 = ['2025-01','2025-02','2025-03','2025-04','2025-05','2025-06','2025-07','2025-08','2025-09','2025-10'];
+  const monthSet = new Set([...allMonths2026, ...months2025.map(m => m.replace('2025','2026'))]);
+  const sortedMonths = [...monthSet].sort();
+
+  const monthNames = {'01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'Jun','07':'Jul','08':'Ago','09':'Sep','10':'Oct','11':'Nov','12':'Dic'};
+
+  // Current month comparison card
+  const cur2026 = get2026Monthly(compStore, currentMonth);
+  const curDay = now.getDate();
+  const cur2025SameDay = get2025UpToDay(compStore, currentMonth, curDay);
+  const cur2025Full = get2025Monthly(compStore, currentMonth);
+  const cur2025 = cur2025Full;
+  const avg2025 = cur2025Full.days > 0 ? cur2025Full.total / cur2025Full.days : 0;
+  const avg2026 = cur2026.days > 0 ? cur2026.total / cur2026.days : 0;
+  const proj2026 = avg2026 > 0 ? Math.round(avg2026 * curDay) : 0;
+  const diff = cur2025SameDay.total > 0 ? Math.round((cur2026.total - cur2025SameDay.total) / cur2025SameDay.total * 100) : 0;
+  const diffColor = diff >= 0 ? 'var(--green)' : 'var(--danger)';
+  const diffSign = diff >= 0 ? '+' : '';
+
+  const mn = currentMonth.slice(5,7);
+
+  let html = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(124,106,255,.1) 0%,transparent 70%);border-radius:50%"></div>
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">${monthNames[mn]} 2026 — hasta el día ${curDay}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div style="background:var(--surface2);border-radius:10px;padding:10px">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">2025 (hasta día ${curDay})</div>
+          <div style="font-family:var(--font-head);font-size:18px;font-weight:700">€${fmt(cur2025SameDay.total)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Mes completo 2025: €${Math.round(cur2025Full.total/1000)}k</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:10px;padding:10px">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">2026 (hasta hoy)</div>
+          <div style="font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--accent)">€${fmt(cur2026.total)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Ø €${Math.round(avg2026)}/día</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;color:var(--muted)">Ritmo vs 2025</div>
+        <div style="font-size:16px;font-weight:700;color:${diffColor}">${diffSign}${diff}%</div>
+      </div>
+      ${proj2026 > 0 ? `<div style="margin-top:8px;background:rgba(232,255,71,.06);border:1px solid rgba(232,255,71,.15);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--muted)">📈 A este ritmo cerrarás el mes en <b style="color:var(--accent)">€${fmt(proj2026)}</b></div>` : ''}
+    </div>`;
+
+  // Monthly table
+  html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px">`;
+  html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr 60px;padding:10px 14px;border-bottom:1px solid var(--border)">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Mes</div>
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:right">2025</div>
+    <div style="font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;text-align:right">2026</div>
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:right">Δ</div>
+  </div>`;
+
+  sortedMonths.forEach(m2026 => {
+    const m2025 = m2026.replace('2026','2025');
+    const mn2 = m2026.slice(5,7);
+    const d25 = get2025Monthly(compStore, m2026);
+    const d26 = get2026Monthly(compStore, m2026);
+    const isCurrentMonth = m2026 === currentMonth;
+    const delta = d25.total > 0 ? Math.round((d26.total - d25.total) / d25.total * 100) : null;
+    const dc = delta === null ? 'var(--muted)' : delta >= 0 ? 'var(--green)' : 'var(--danger)';
+    const ds = delta === null ? '–' : (delta >= 0 ? '+' : '') + delta + '%';
+    html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr 60px;padding:10px 14px;border-bottom:1px solid var(--border);${isCurrentMonth ? 'background:rgba(232,255,71,.04)' : ''}">
+      <div style="font-size:13px;${isCurrentMonth ? 'color:var(--accent);font-weight:500' : ''}">
+        ${monthNames[mn2]} ${isCurrentMonth ? '◀' : ''}
+      </div>
+      <div style="font-size:13px;color:var(--muted);text-align:right">${d25.total > 0 ? '€'+Math.round(d25.total/1000)+'k' : '–'}</div>
+      <div style="font-size:13px;color:var(--accent);text-align:right;font-weight:${d26.total > 0 ? '500' : '400'}">${d26.total > 0 ? '€'+Math.round(d26.total/1000)+'k' : '–'}</div>
+      <div style="font-size:12px;color:${dc};text-align:right">${ds}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Best day of week analysis from 2025
+  const dowNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const dowTotals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+  const dowCounts = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+  for (const [key, val] of Object.entries(DATA_2025)) {
+    const [s, date] = key.split('|');
+    if (compStore === 'all' || s === compStore) {
+      const dow = new Date(date + 'T12:00:00').getDay();
+      dowTotals[dow] += val; dowCounts[dow]++;
+    }
+  }
+  const dowAvg = Object.keys(dowTotals).map(d => ({dow: parseInt(d), avg: dowCounts[d] > 0 ? dowTotals[d]/dowCounts[d] : 0}));
+  const maxAvg = Math.max(...dowAvg.map(d => d.avg));
+  html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">Venta media por día de semana (2025)</div>
+    ${dowAvg.map(d => `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div style="font-size:11px;color:var(--muted);width:28px">${dowNames[d.dow]}</div>
+        <div style="flex:1;background:var(--surface2);border-radius:4px;height:16px;overflow:hidden">
+          <div style="height:100%;background:${d.avg === maxAvg ? 'var(--accent)' : 'var(--accent2)'};width:${maxAvg > 0 ? Math.round(d.avg/maxAvg*100) : 0}%;opacity:${d.avg === maxAvg ? '1' : '0.5'};border-radius:4px;transition:width .4s"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text);width:48px;text-align:right">€${Math.round(d.avg)}</div>
+      </div>`).join('')}
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+// ---- ONEDRIVE SYNC ----
+const MSAL_CONFIG = {
+  clientId: 'b4dbccb5-2930-410b-96c4-87bead2eaa3a',
+  tenantId: '462f57da-1484-4ade-866e-8aa2ebd79e64',
+  redirectUri: 'https://arrobi.github.io/caixa',
+  scopes: ['Files.ReadWrite', 'User.Read']
+};
+
+let msalInstance = null;
+let msalAccount = null;
+let oneDriveFileId = null;
+
+async function initMsal() {
+  if (msalInstance) return;
+  // Load MSAL library dynamically
+  await loadScript('https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js');
+  msalInstance = new msal.PublicClientApplication({
+    auth: {
+      clientId: MSAL_CONFIG.clientId,
+      authority: `https://login.microsoftonline.com/common`,
+      redirectUri: MSAL_CONFIG.redirectUri,
+    },
+    cache: { cacheLocation: 'localStorage' }
+  });
+  await msalInstance.initialize();
+  // Handle redirect
+  const result = await msalInstance.handleRedirectPromise();
+  if (result) msalAccount = result.account;
+  else {
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length > 0) msalAccount = accounts[0];
+  }
+}
+
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function getAccessToken() {
+  await initMsal();
+  const request = { scopes: MSAL_CONFIG.scopes, account: msalAccount };
+  try {
+    const result = await msalInstance.acquireTokenSilent(request);
+    return result.accessToken;
+  } catch (e) {
+    const result = await msalInstance.acquireTokenPopup(request);
+    msalAccount = result.account;
+    return result.accessToken;
+  }
+}
+
+async function loginOneDrive() {
+  try {
+    showToast('⏳ Conectando con OneDrive...');
+    const token = await getAccessToken();
+    const resp = await fetch('https://graph.microsoft.com/v1.0/me', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const user = await resp.json();
+    localStorage.setItem('od_connected', '1');
+    localStorage.setItem('od_user', user.displayName || user.mail);
+    updateOneDriveStatus();
+    showToast('✓ Conectado como ' + (user.displayName || user.mail));
+  } catch (e) {
+    showToast('⚠️ Error: ' + e.message.slice(0, 40));
+  }
+}
+
+function logoutOneDrive() {
+  localStorage.removeItem('od_connected');
+  localStorage.removeItem('od_user');
+  localStorage.removeItem('od_file_id');
+  oneDriveFileId = null;
+  if (msalInstance) msalInstance.logoutPopup();
+  updateOneDriveStatus();
+}
+
+function updateOneDriveStatus() {
+  const connected = localStorage.getItem('od_connected');
+  const user = localStorage.getItem('od_user');
+  const statusEl = document.getElementById('od-status');
+  const btnEl = document.getElementById('od-btn');
+  const syncEl = document.getElementById('od-sync-section');
+  if (!statusEl) return;
+  if (connected) {
+    statusEl.textContent = '✓ Conectado: ' + user;
+    statusEl.style.color = 'var(--green)';
+    btnEl.textContent = 'Desconectar';
+    btnEl.onclick = logoutOneDrive;
+    if (syncEl) syncEl.style.display = 'block';
+  } else {
+    statusEl.textContent = 'No conectado';
+    statusEl.style.color = 'var(--muted)';
+    btnEl.textContent = 'Conectar con OneDrive';
+    btnEl.onclick = loginOneDrive;
+    if (syncEl) syncEl.style.display = 'none';
+  }
+}
+
+async function findOrCreateExcelFile() {
+  const saved = localStorage.getItem('od_file_id');
+  if (saved) { oneDriveFileId = saved; return saved; }
+  const token = await getAccessToken();
+  // Search for Contabilidad.xlsx
+  const search = await fetch("https://graph.microsoft.com/v1.0/me/drive/root/search(q='Contabilidad.xlsx')", {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const results = await search.json();
+  if (results.value && results.value.length > 0) {
+    const file = results.value[0];
+    oneDriveFileId = file.id;
+    localStorage.setItem('od_file_id', file.id);
+    localStorage.setItem('od_file_name', file.name);
+    return file.id;
+  }
+  throw new Error('No se encontró Contabilidad.xlsx en OneDrive');
+}
+
+async function syncToExcel() {
+  if (entries.length === 0) { showToast('⚠️ No hay datos para sincronizar'); return; }
+  try {
+    showToast('⏳ Sincronizando...');
+    const token = await getAccessToken();
+    const fileId = await findOrCreateExcelFile();
+
+    // Get current Caja sheet to find next empty row
+    const rangeResp = await fetch(
+      `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/usedRange`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const rangeData = await rangeResp.json();
+    const nextRow = (rangeData.rowCount || 1) + 1;
+
+    // Prepare rows to add (only entries not yet synced)
+    const synced = JSON.parse(localStorage.getItem('od_synced') || '[]');
+    const toSync = entries.filter(e => !synced.includes(e.id));
+    if (toSync.length === 0) { showToast('✓ Todo ya sincronizado'); return; }
+
+    const rows = toSync.map(e => [
+      e.jour, e.mois, e.magasin,
+      e.liquide || 0, e.cb || 0, e.cheque || 0, e.recettes || 0,
+      e.yokii || 0, e.noche || 0, e.versement_cheq || 0, e.versement_esp || 0,
+      e.note || '', e.total || 0
+    ]);
+
+    // Write to Excel
+    const endRow = nextRow + rows.length - 1;
+    const range = `A${nextRow}:M${endRow}`;
+    await fetch(
+      `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/range(address='${range}')`,
+      {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values: rows })
+      }
+    );
+
+    // Mark as synced
+    const newSynced = [...synced, ...toSync.map(e => e.id)];
+    localStorage.setItem('od_synced', JSON.stringify(newSynced));
+    showToast(`✓ ${toSync.length} entrada${toSync.length > 1 ? 's' : ''} sincronizada${toSync.length > 1 ? 's' : ''}`);
+    updateSyncStatus();
+  } catch (e) {
+    showToast('⚠️ ' + e.message.slice(0, 50));
+    console.error(e);
+  }
+}
+
+function updateSyncStatus() {
+  const el = document.getElementById('od-sync-status');
+  if (!el) return;
+  const synced = JSON.parse(localStorage.getItem('od_synced') || '[]');
+  const pending = entries.filter(e => !synced.includes(e.id)).length;
+  el.textContent = pending > 0 ? `${pending} entrada${pending > 1 ? 's' : ''} pendiente${pending > 1 ? 's' : ''} de sincronizar` : 'Todo sincronizado ✓';
+  el.style.color = pending > 0 ? 'var(--accent)' : 'var(--green)';
+}
+
+renderHistory();updateExportStats();updateOneDriveStatus();updateSyncStatus();
 </script>
 </body>
 </html>
