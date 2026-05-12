@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0a0a0f">
 <title>Caixa</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.10.0/lib/msal-browser.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
@@ -797,14 +797,15 @@ let oneDriveFileId = null;
 async function initMsal() {
   if (msalInstance) return;
   await new Promise((res, rej) => {
-    if (typeof msal !== 'undefined') { res(); return; }
+    if (typeof msalBrowser !== 'undefined' || typeof msal !== 'undefined') { res(); return; }
     let tries = 0;
     const iv = setInterval(() => {
       if (typeof msal !== 'undefined') { clearInterval(iv); res(); }
       else if (++tries > 50) { clearInterval(iv); rej(new Error('MSAL no cargó')); }
     }, 100);
   });
-  msalInstance = new msal.PublicClientApplication({
+  const msalLib = typeof msal !== "undefined" ? msal : msalBrowser;
+  msalInstance = new msalLib.PublicClientApplication({
     auth: {
       clientId: MSAL_CONFIG.clientId,
       authority: `https://login.microsoftonline.com/common`,
