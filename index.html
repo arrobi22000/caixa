@@ -848,9 +848,11 @@ async function getAccessToken() {
 async function loginOneDrive() {
   try {
     showToast('⏳ Conectando con OneDrive...');
-    const token = await getAccessToken();
+    await initMsal();
+    const result = await msalInstance.loginPopup({ scopes: MSAL_CONFIG.scopes });
+    msalAccount = result.account;
     const resp = await fetch('https://graph.microsoft.com/v1.0/me', {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${result.accessToken}` }
     });
     const user = await resp.json();
     localStorage.setItem('od_connected', '1');
