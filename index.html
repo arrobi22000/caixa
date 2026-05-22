@@ -1029,7 +1029,7 @@ async function syncToExcel() {
         }
       );
 
-      // Write YOKII (col O = col 15) and NOCHE (col Q = col 17)
+      // Write YOKII (col O) and NOCHE (col Q)
       await fetch(
         `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/range(address='O${targetRow}')`,
         {
@@ -1047,6 +1047,18 @@ async function syncToExcel() {
           body: JSON.stringify({ values: [[entry.noche || 0]] })
         }
       );
+
+      // Write VERSEMENT ESPECES (col H) and VERSEMENT CHEQUES (col I)
+      if((entry.versement_esp||0) > 0 || (entry.versement_cheq||0) > 0){
+        await fetch(
+          `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/range(address='H${targetRow}:I${targetRow}')`,
+          {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ values: [[entry.versement_esp || 0, entry.versement_cheq || 0]] })
+          }
+        );
+      }
 
       syncCount++;
     }
