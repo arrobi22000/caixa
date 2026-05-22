@@ -290,6 +290,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
         <button onclick="clearData()" style="margin-top:10px;width:100%;padding:10px;border-radius:10px;background:transparent;border:1px solid var(--danger);color:var(--danger);font-family:var(--font-mono);font-size:11px;cursor:pointer">
           Effacer toutes les données
         </button>
+        <button onclick="localStorage.removeItem('od_synced');localStorage.removeItem('od_file_id');showToast('✓ Listo, sincroniza de nuevo')" style="margin-top:6px;width:100%;padding:10px;border-radius:10px;background:transparent;border:1px solid var(--accent2);color:var(--accent2);font-family:var(--font-mono);font-size:11px;cursor:pointer">
+          🔄 Forzar resincronización
+        </button>
       </div>
     </div>
 
