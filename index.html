@@ -306,10 +306,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
         <button class="tab" id="comp-tab-comp" onclick="setCompStore('COMPTOIR DES OCEANS',this)">🌊 Comptoir</button>
         <button class="tab" id="comp-tab-hon" onclick="setCompStore('HONDARTZA',this)">⛵ Hondartza</button>
       </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:11px;color:var(--muted)">Comparar hasta:</span>
-        <input type="date" id="comp-day" style="background:transparent;border:none;outline:none;color:var(--accent);font-family:var(--font-mono);font-size:13px;color-scheme:dark" onchange="renderComp()">
-        <button onclick="setCompDayToday()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--muted);cursor:pointer">Hoy</button>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--muted)">Comparar hasta:</span>
+          <select id="comp-month" onchange="renderComp()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--accent);font-family:var(--font-mono);font-size:12px;outline:none">
+            <option value="2026-01">Enero</option><option value="2026-02">Febrero</option>
+            <option value="2026-03">Marzo</option><option value="2026-04">Abril</option>
+            <option value="2026-05" selected>Mayo</option><option value="2026-06">Junio</option>
+            <option value="2026-07">Julio</option><option value="2026-08">Agosto</option>
+            <option value="2026-09">Septiembre</option><option value="2026-10">Octubre</option>
+            <option value="2026-11">Noviembre</option><option value="2026-12">Diciembre</option>
+          </select>
+          <select id="comp-day" onchange="renderComp()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--accent);font-family:var(--font-mono);font-size:12px;outline:none">
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
+          </select>
+          <button onclick="setCompDayToday()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--muted);cursor:pointer">Hoy</button>
+        </div>
       </div>
       <div id="comp-content"></div>
     </div>
@@ -660,7 +672,7 @@ function showView(name){
   document.getElementById('nav-'+name).classList.add('active');
   if(name==='resumen')renderResumen();
   if(name==='email'){updateExportStats();renderEmailPreview();}
-  if(name==='comp'){setTimeout(()=>{const cd=document.getElementById('comp-day');if(cd&&!cd.value)cd.value=new Date().toISOString().slice(0,10);},100);loadExcelData();}
+  if(name==='comp'){setTimeout(()=>{const now2=new Date();const cm=document.getElementById('comp-month');const cd=document.getElementById('comp-day');if(cm)cm.value=now2.toISOString().slice(0,7);if(cd)cd.value=now2.getDate();},100);loadExcelData();}
   window.scrollTo(0,0);
 }
 
@@ -718,18 +730,18 @@ function get2026DailyAvg(store, month) {
 
 let compStore = 'all';
 function setCompDayToday(){
-  document.getElementById('comp-day').value = new Date().toISOString().slice(0,10);
+  const now = new Date();
+  const m = document.getElementById('comp-month');
+  const d = document.getElementById('comp-day');
+  if(m) m.value = now.toISOString().slice(0,7);
+  if(d) d.value = now.getDate();
   renderComp();
 }
 function getCompDay(){
-  const val = document.getElementById('comp-day')?.value;
-  if(val) return parseInt(val.slice(8,10));
-  return new Date().getDate();
+  return parseInt(document.getElementById('comp-day')?.value) || new Date().getDate();
 }
 function getCompMonth(){
-  const val = document.getElementById('comp-day')?.value;
-  if(val) return val.slice(0,7);
-  return new Date().toISOString().slice(0,7);
+  return document.getElementById('comp-month')?.value || new Date().toISOString().slice(0,7);
 }
 window.EXCEL_2026 = null;
 
@@ -766,7 +778,7 @@ async function loadExcelData() {
       } catch(e) {}
     }
     window.EXCEL_2026 = parsed;
-    if(!document.getElementById('comp-day').value) document.getElementById('comp-day').value = new Date().toISOString().slice(0,10);
+    const _now=new Date();const _cm=document.getElementById('comp-month');const _cd=document.getElementById('comp-day');if(_cm&&!_cm.value.includes(_now.toISOString().slice(0,7)))_cm.value=_now.toISOString().slice(0,7);if(_cd&&!_cd.value)_cd.value=_now.getDate();
     renderComp();
   } catch(e) {
     el.innerHTML = `<div style="text-align:center;color:var(--danger);padding:40px 20px;font-size:13px">Error cargando Excel: ${e.message}</div>`;
