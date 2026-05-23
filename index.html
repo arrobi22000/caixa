@@ -306,6 +306,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
         <button class="tab" id="comp-tab-comp" onclick="setCompStore('COMPTOIR DES OCEANS',this)">🌊 Comptoir</button>
         <button class="tab" id="comp-tab-hon" onclick="setCompStore('HONDARTZA',this)">⛵ Hondartza</button>
       </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px">
+        <span style="font-size:11px;color:var(--muted);flex-shrink:0">Hasta el día:</span>
+        <input type="number" id="comp-day" min="1" max="31" style="width:60px;background:transparent;border:none;outline:none;color:var(--accent);font-family:var(--font-mono);font-size:18px;font-weight:500;text-align:center" oninput="renderComp()">
+        <span style="font-size:11px;color:var(--muted)">del mes</span>
+        <button onclick="setCompDayToday()" style="margin-left:auto;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--muted);cursor:pointer">Hoy</button>
+      </div>
       <div id="comp-content"></div>
     </div>
 
@@ -655,7 +661,7 @@ function showView(name){
   document.getElementById('nav-'+name).classList.add('active');
   if(name==='resumen')renderResumen();
   if(name==='email'){updateExportStats();renderEmailPreview();}
-  if(name==='comp')loadExcelData();
+  if(name==='comp'){setTimeout(()=>{const cd=document.getElementById('comp-day');if(cd&&!cd.value)cd.value=new Date().getDate();},100);loadExcelData();}
   window.scrollTo(0,0);
 }
 
@@ -712,6 +718,14 @@ function get2026DailyAvg(store, month) {
 }
 
 let compStore = 'all';
+function setCompDayToday(){
+  document.getElementById('comp-day').value = new Date().getDate();
+  renderComp();
+}
+function getCompDay(){
+  const val = parseInt(document.getElementById('comp-day')?.value);
+  return (val >= 1 && val <= 31) ? val : new Date().getDate();
+}
 window.EXCEL_2026 = null;
 
 async function loadExcelData() {
@@ -747,6 +761,7 @@ async function loadExcelData() {
       } catch(e) {}
     }
     window.EXCEL_2026 = parsed;
+    if(!document.getElementById('comp-day').value) document.getElementById('comp-day').value = new Date().getDate();
     renderComp();
   } catch(e) {
     el.innerHTML = `<div style="text-align:center;color:var(--danger);padding:40px 20px;font-size:13px">Error cargando Excel: ${e.message}</div>`;
@@ -776,7 +791,7 @@ function renderComp() {
 
   // Current month comparison card
   const cur2026 = get2026Monthly(compStore, currentMonth);
-  const curDay = now.getDate();
+  const curDay = getCompDay();
   const cur2025SameDay = get2025UpToDay(compStore, currentMonth, curDay);
   const cur2025Full = get2025Monthly(compStore, currentMonth);
   const cur2025 = cur2025Full;
