@@ -901,6 +901,62 @@ function renderComp() {
       </div>`).join('')}
   </div>`;
 
+  // Best days of 2026
+  const source2026 = window.EXCEL_2026 || DATA_2026;
+  const dow2026Totals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+  const dow2026Counts = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+  const top2026Days = [];
+
+  for (const [key, val] of Object.entries(source2026)) {
+    const [s, date] = key.split('|');
+    if (compStore === 'all' || s === compStore) {
+      const dow = new Date(date + 'T12:00:00').getDay();
+      dow2026Totals[dow] += val;
+      dow2026Counts[dow]++;
+      top2026Days.push({date, store: s, val});
+    }
+  }
+
+  const dow2026Avg = Object.keys(dow2026Totals).map(d => ({
+    dow: parseInt(d),
+    avg: dow2026Counts[d] > 0 ? dow2026Totals[d] / dow2026Counts[d] : 0
+  }));
+  const maxAvg2026 = Math.max(...dow2026Avg.map(d => d.avg));
+
+  // Top 10 best days 2026
+  const top10 = [...top2026Days].sort((a,b) => b.val - a.val).slice(0,10);
+  const dayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const storeShort = {'BOUTIQUE DE LA PLAGE':'Boutique','COMPTOIR DES OCEANS':'Comptoir','HONDARTZA':'Hondartza'};
+
+  html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">Media por día de semana (2026)</div>
+    ${dow2026Avg.map(d => `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div style="font-size:11px;color:var(--muted);width:28px">${dowNames[d.dow]}</div>
+        <div style="flex:1;background:var(--surface2);border-radius:4px;height:16px;overflow:hidden">
+          <div style="height:100%;background:${d.avg === maxAvg2026 ? 'var(--accent)' : 'var(--accent2)'};width:${maxAvg2026 > 0 ? Math.round(d.avg/maxAvg2026*100) : 0}%;opacity:${d.avg === maxAvg2026 ? '1' : '0.5'};border-radius:4px;transition:width .4s"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text);width:48px;text-align:right">€${Math.round(d.avg)}</div>
+      </div>`).join('')}
+  </div>`;
+
+  html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">🏆 Top 10 mejores días 2026</div>
+    ${top10.map((d,i) => {
+      const date = new Date(d.date + 'T12:00:00');
+      const dow = dayNames[date.getDay()];
+      const colors = {'BOUTIQUE DE LA PLAGE':'var(--accent)','COMPTOIR DES OCEANS':'var(--accent2)','HONDARTZA':'var(--green)'};
+      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:13px;color:var(--muted);width:20px;text-align:center">${i+1}</div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:500">${d.date} <span style="color:var(--muted);font-size:10px">${dow}</span></div>
+          <div style="font-size:10px;color:${colors[d.store]||'var(--muted)'};">${storeShort[d.store]||d.store}</div>
+        </div>
+        <div style="font-family:var(--font-head);font-size:16px;font-weight:700;color:var(--accent)">€${fmt(d.val)}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+
   el.innerHTML = html;
 }
 
