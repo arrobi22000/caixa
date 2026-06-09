@@ -747,6 +747,20 @@ function getCompDay(){
 function getCompMonth(){
   return document.getElementById('comp-month')?.value || new Date().toISOString().slice(0,7);
 }
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+async function gfetch(url, opts, tries=6){
+  for(let i=0;i<tries;i++){
+    let r = await fetch(url, opts);
+    if(r.status===429 || r.status===503){
+      const ra=parseInt(r.headers.get('Retry-After')||'');
+      const wait=(isNaN(ra)?Math.min(Math.pow(2,i),20):ra)*1000;
+      await sleep(wait); continue;
+    }
+    return r;
+  }
+  throw new Error('OneDrive saturado (429): espera 1 min y reintenta');
+}
+
 window.EXCEL_2026 = null;
 
 async function loadExcelData() {
@@ -760,7 +774,7 @@ async function loadExcelData() {
     const token = await getAccessToken();
     if (!token) return;
     const fileId = await findOrCreateExcelFile();
-    const resp = await fetch(
+    const resp = await gfetch(
       `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/usedRange`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -1037,7 +1051,7 @@ async function loginOneDrive() {
     await initMsal();
     const result = await msalInstance.loginPopup({ scopes: MSAL_CONFIG.scopes });
     msalAccount = result.account;
-    const resp = await fetch('https://graph.microsoft.com/v1.0/me', {
+    const resp = await gfetch('https://graph.microsoft.com/v1.0/me', {
       headers: { Authorization: `Bearer ${result.accessToken}` }
     });
     const user = await resp.json();
@@ -1090,7 +1104,7 @@ async function findOrCreateExcelFile() {
   // Decode share URL to get file ID
   const shareUrl = 'https://1drv.ms/x/c/67b7b151e346b7a4/IQBFifThd_gVQYL83rlD5_xaAUbuiChX7XI6RZq7vh1YbX4';
   const encoded = btoa(shareUrl).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
-  const resp = await fetch(
+  const resp = await gfetch(
     `https://graph.microsoft.com/v1.0/shares/u!${encoded}/driveItem`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
@@ -1116,7 +1130,7 @@ async function syncToExcel() {
     if (toSync.length === 0) { showToast('✓ Todo ya sincronizado'); await showBalances(); return; }
 
     // Get all data from Caja to find matching rows
-    const rangeResp = await fetch(
+    const rangeResp = await gfetch(
       `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/usedRange`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -1141,7 +1155,7 @@ async function syncToExcel() {
 
     const CAJA = `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja`;
     const patch = async (addr, body) => {
-      const resp = await fetch(`${CAJA}/range(address='${addr}')`, {
+      const resp = await gfetch(`${CAJA}/range(address='${addr}')`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -1166,37 +1180,40 @@ async function syncToExcel() {
         }
       }
 
-      // Si no existe la fila (p. ej. mes nuevo), CREARLA en la primera fila vacia de la tabla
+      // Si no existe la fila (mes nuevo): CREARLA completa en 1 sola peticion
+      let createdNew = false;
       if (targetRow === -1) {
         const nr = nextEmpty++;
-        // A:C  -> MOIS forzado a TEXTO (formato @) para que el match futuro funcione
-        await patch(`A${nr}:C${nr}`, {
-          values: [[entry.jour, String(entry.mois), entry.magasin]],
-          numberFormat: [['General', '@', 'General']]
-        });
-        // Columnas con formula, mismo patron que el resto de la tabla
-        await patch(`G${nr}`, { values: [[`=F${nr}+E${nr}+D${nr}`]] });
-        await patch(`J${nr}`, { values: [[`=E${nr}`]] });
-        await patch(`M${nr}:N${nr}`, { values: [[
+        await patch(`A${nr}:R${nr}`, { values: [[
+          entry.jour, String(entry.mois), entry.magasin,
+          entry.liquide || 0, entry.cb || 0, entry.cheque || 0,
+          `=F${nr}+E${nr}+D${nr}`,
+          entry.versement_esp || 0, entry.versement_cheq || 0,
+          `=E${nr}`,
+          null, null,
           `=IF($C${nr}="","",XLOOKUP($C${nr},$V$3:$V$5,$W$3:$W$5,0)+SUMIFS($F$3:F${nr},$C$3:C${nr},$C${nr})-SUMIFS($I$3:I${nr},$C$3:C${nr},$C${nr}))`,
-          `=IF($C${nr}="","",XLOOKUP($C${nr},$V$3:$V$5,$X$3:$X$5,0)+SUMIFS($D$3:D${nr},$C$3:C${nr},$C${nr})-SUMIFS($H$3:H${nr},$C$3:C${nr},$C${nr})-SUMIFS($K$3:K${nr},$C$3:C${nr},$C${nr}))`
+          `=IF($C${nr}="","",XLOOKUP($C${nr},$V$3:$V$5,$X$3:$X$5,0)+SUMIFS($D$3:D${nr},$C$3:C${nr},$C${nr})-SUMIFS($H$3:H${nr},$C$3:C${nr},$C${nr})-SUMIFS($K$3:K${nr},$C$3:C${nr},$C${nr}))`,
+          entry.yokii || 0,
+          `=O${nr}+G${nr}`,
+          entry.noche || 0,
+          `=P${nr}+Q${nr}`
         ]] });
-        await patch(`P${nr}`, { values: [[`=O${nr}+G${nr}`]] });
-        await patch(`R${nr}`, { values: [[`=P${nr}+Q${nr}`]] });
-        targetRow = nr;
+        // MOIS forzado a TEXTO para que el match futuro funcione
+        await patch(`B${nr}`, { numberFormat: [['@']], values: [[String(entry.mois)]] });
+        targetRow = nr; createdNew = true;
         console.log('Fila creada:', entry.jour, entry.mois, entry.magasin, '-> fila', nr);
       }
 
-      // Datos: D(LIQUIDE) E(C.B) F(CHEQUE)
-      await patch(`D${targetRow}:F${targetRow}`, { values: [[entry.liquide || 0, entry.cb || 0, entry.cheque || 0]] });
-      // YOKII (O) y NOCHE (Q)
-      await patch(`O${targetRow}`, { values: [[entry.yokii || 0]] });
-      await patch(`Q${targetRow}`, { values: [[entry.noche || 0]] });
-      // VERSEMENT especes (H) y cheques (I)
-      if ((entry.versement_esp || 0) > 0 || (entry.versement_cheq || 0) > 0) {
-        await patch(`H${targetRow}:I${targetRow}`, { values: [[entry.versement_esp || 0, entry.versement_cheq || 0]] });
+      // Filas existentes: escribir solo los datos (las nuevas ya van completas)
+      if (!createdNew) {
+        await patch(`D${targetRow}:F${targetRow}`, { values: [[entry.liquide || 0, entry.cb || 0, entry.cheque || 0]] });
+        await patch(`O${targetRow}:Q${targetRow}`, { values: [[entry.yokii || 0, `=O${targetRow}+G${targetRow}`, entry.noche || 0]] });
+        if ((entry.versement_esp || 0) > 0 || (entry.versement_cheq || 0) > 0) {
+          await patch(`H${targetRow}:I${targetRow}`, { values: [[entry.versement_esp || 0, entry.versement_cheq || 0]] });
+        }
       }
 
+      await sleep(120);
       syncCount++;
       syncedIds.push(entry.id);
     }
@@ -1218,7 +1235,7 @@ async function showBalances() {
     box.innerHTML = '<span style="color:var(--muted);font-size:12px">⏳ Leyendo saldos del Excel…</span>';
     const token = await getAccessToken();
     const fileId = await findOrCreateExcelFile();
-    const resp = await fetch(
+    const resp = await gfetch(
       `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/usedRange`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
