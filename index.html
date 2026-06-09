@@ -277,6 +277,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
           <button onclick="syncToExcel()" style="width:100%;padding:11px;border-radius:10px;background:var(--accent);color:#0a0a0f;font-family:var(--font-head);font-size:13px;font-weight:700;border:none;cursor:pointer">
             ↗ Sincronizar con Excel
           </button>
+          <button onclick="showBalances()" style="width:100%;padding:11px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-head);font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">
+            💶 Saldos a ingresar
+          </button>
+          <div id="od-balances" style="margin-top:10px"></div>
         </div>
       </div>
 
@@ -1105,7 +1109,7 @@ async function syncToExcel() {
 
     const synced = JSON.parse(localStorage.getItem('od_synced') || '[]');
     const toSync = entries.filter(e => !synced.includes(e.id));
-    if (toSync.length === 0) { showToast('✓ Todo ya sincronizado'); return; }
+    if (toSync.length === 0) { showToast('✓ Todo ya sincronizado'); await showBalances(); return; }
 
     // Get all data from Caja to find matching rows
     const rangeResp = await fetch(
@@ -1117,85 +1121,121 @@ async function syncToExcel() {
 
 
     let syncCount = 0;
+    const syncedIds = [];
+
+    // Localizar la primera fila vacia de la tabla (col A sin JOUR) por si hay que crear filas
+    let nextEmpty = -1;
+    for (let i = 2; i < rows.length; i++) {
+      const a = rows[i][0];
+      if (a === null || a === '' || a === undefined) { nextEmpty = i + 1; break; }
+    }
+    if (nextEmpty === -1) nextEmpty = rows.length + 1;
+
+    const CAJA = `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja`;
+    const patch = async (addr, body) => {
+      const resp = await fetch(`${CAJA}/range(address='${addr}')`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!resp.ok) throw new Error(`Excel ${resp.status} (cierra Excel y reintenta)`);
+      return resp;
+    };
+
     for (const entry of toSync) {
-      // Find the row matching JOUR + MOIS + MAGASIN
-      // Col A=0(JOUR), B=1(MOIS), C=2(MAGASIN)
+      // Buscar la fila que coincide con JOUR + MOIS + MAGASIN
       let targetRow = -1;
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
-        // Handle different formats Excel API might return
         const jour = r[0] !== null && r[0] !== '' ? parseInt(String(r[0])) : -1;
         const mois = String(r[1] || '').trim();
         const mag = String(r[2] || '').trim().toUpperCase();
         const entryMag = String(entry.magasin || '').trim().toUpperCase();
         const entryMois = String(entry.mois || '').trim();
         if (jour === entry.jour && mois === entryMois && mag === entryMag) {
-          targetRow = i + 1; // 1-indexed for Excel API
+          targetRow = i + 1; // 1-indexed para la API de Excel
           break;
         }
       }
 
+      // Si no existe la fila (p. ej. mes nuevo), CREARLA en la primera fila vacia de la tabla
       if (targetRow === -1) {
-        console.warn('Fila no encontrada para:', entry.jour, entry.mois, entry.magasin);
-        // Try to find by logging what rows look like
-        const sample = rows.slice(2,5).map(r => `[${r[0]}|${r[1]}|${r[2]}]`).join(', ');
-        console.warn('Muestra de filas:', sample);
-        showToast(`⚠️ Día ${entry.jour}/${entry.mois} no encontrado`);
-        continue;
+        const nr = nextEmpty++;
+        // A:C  -> MOIS forzado a TEXTO (formato @) para que el match futuro funcione
+        await patch(`A${nr}:C${nr}`, {
+          values: [[entry.jour, String(entry.mois), entry.magasin]],
+          numberFormat: [['General', '@', 'General']]
+        });
+        // Columnas con formula, mismo patron que el resto de la tabla
+        await patch(`G${nr}`, { values: [[`=F${nr}+E${nr}+D${nr}`]] });
+        await patch(`J${nr}`, { values: [[`=E${nr}`]] });
+        await patch(`M${nr}:N${nr}`, { values: [[
+          `=IF($C${nr}="","",XLOOKUP($C${nr},$V$3:$V$5,$W$3:$W$5,0)+SUMIFS($F$3:F${nr},$C$3:C${nr},$C${nr})-SUMIFS($I$3:I${nr},$C$3:C${nr},$C${nr}))`,
+          `=IF($C${nr}="","",XLOOKUP($C${nr},$V$3:$V$5,$X$3:$X$5,0)+SUMIFS($D$3:D${nr},$C$3:C${nr},$C${nr})-SUMIFS($H$3:H${nr},$C$3:C${nr},$C${nr})-SUMIFS($K$3:K${nr},$C$3:C${nr},$C${nr}))`
+        ]] });
+        await patch(`P${nr}`, { values: [[`=O${nr}+G${nr}`]] });
+        await patch(`R${nr}`, { values: [[`=P${nr}+Q${nr}`]] });
+        targetRow = nr;
+        console.log('Fila creada:', entry.jour, entry.mois, entry.magasin, '-> fila', nr);
       }
 
-      // Write only data columns: D(LIQUIDE), E(CB), F(CHEQUE), O(YOKII), Q(NOCHE)
-      // D=col4, E=col5, F=col6 -> range D:F
-      await fetch(
-        `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/range(address='D${targetRow}:F${targetRow}')`,
-        {
-          method: 'PATCH',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ values: [[entry.liquide || 0, entry.cb || 0, entry.cheque || 0]] })
-        }
-      );
-
-      // Write YOKII (col O) and NOCHE (col Q)
-      await fetch(
-        `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/range(address='O${targetRow}')`,
-        {
-          method: 'PATCH',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ values: [[entry.yokii || 0]] })
-        }
-      );
-
-      await fetch(
-        `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/range(address='Q${targetRow}')`,
-        {
-          method: 'PATCH',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ values: [[entry.noche || 0]] })
-        }
-      );
-
-      // Write VERSEMENT ESPECES (col H) and VERSEMENT CHEQUES (col I)
-      if((entry.versement_esp||0) > 0 || (entry.versement_cheq||0) > 0){
-        await fetch(
-          `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/range(address='H${targetRow}:I${targetRow}')`,
-          {
-            method: 'PATCH',
-            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ values: [[entry.versement_esp || 0, entry.versement_cheq || 0]] })
-          }
-        );
+      // Datos: D(LIQUIDE) E(C.B) F(CHEQUE)
+      await patch(`D${targetRow}:F${targetRow}`, { values: [[entry.liquide || 0, entry.cb || 0, entry.cheque || 0]] });
+      // YOKII (O) y NOCHE (Q)
+      await patch(`O${targetRow}`, { values: [[entry.yokii || 0]] });
+      await patch(`Q${targetRow}`, { values: [[entry.noche || 0]] });
+      // VERSEMENT especes (H) y cheques (I)
+      if ((entry.versement_esp || 0) > 0 || (entry.versement_cheq || 0) > 0) {
+        await patch(`H${targetRow}:I${targetRow}`, { values: [[entry.versement_esp || 0, entry.versement_cheq || 0]] });
       }
 
       syncCount++;
+      syncedIds.push(entry.id);
     }
 
-    const newSynced = [...synced, ...toSync.map(e => e.id)];
+    const newSynced = [...synced, ...syncedIds];
     localStorage.setItem('od_synced', JSON.stringify(newSynced));
     showToast(`✓ ${syncCount} día${syncCount > 1 ? 's' : ''} actualizado${syncCount > 1 ? 's' : ''} en Excel`);
     updateSyncStatus();
+    await showBalances();
   } catch (e) {
     showToast('⚠️ ' + e.message.slice(0, 50));
     console.error(e);
+  }
+}
+
+async function showBalances() {
+  const box = document.getElementById('od-balances');
+  try {
+    box.innerHTML = '<span style="color:var(--muted);font-size:12px">⏳ Leyendo saldos del Excel…</span>';
+    const token = await getAccessToken();
+    const fileId = await findOrCreateExcelFile();
+    const resp = await fetch(
+      `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/usedRange`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!resp.ok) throw new Error('Excel ' + resp.status);
+    const data = await resp.json();
+    const rows = data.values || [];
+    // C(2)=MAGASIN, N(13)=SOLDES ESPECES. Ultima fila de cada tienda = saldo actual.
+    const bal = {};
+    for (let i = 2; i < rows.length; i++) {
+      const mag = String(rows[i][2] || '').trim().toUpperCase();
+      if (!mag) continue;
+      const v = rows[i][13];
+      if (v !== null && v !== '' && !isNaN(parseFloat(v))) bal[mag] = parseFloat(v);
+    }
+    const order = ['BOUTIQUE DE LA PLAGE', 'COMPTOIR DES OCEANS', 'HONDARTZA'];
+    let html = '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Efectivo pendiente de ingresar</div>';
+    let any = false;
+    for (const m of order) {
+      if (bal[m] === undefined) continue;
+      any = true;
+      html += `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">${STORE_SHORT[m] || m}</span><span style="font-family:var(--font-head);font-weight:800;color:var(--accent)">€${fmt(bal[m])}</span></div>`;
+    }
+    box.innerHTML = any ? html : '<span style="color:var(--muted);font-size:12px">Sin saldos todavía</span>';
+  } catch (e) {
+    box.innerHTML = '<span style="color:var(--danger);font-size:12px">⚠️ ' + e.message.slice(0, 60) + '</span>';
   }
 }
 
