@@ -764,6 +764,10 @@ async function loadExcelData() {
       `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/usedRange`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
+    if (!resp.ok) {
+      let m = resp.status; try { const er = await resp.json(); m = er.error?.message || m; } catch(_){}
+      throw new Error(resp.status===401 ? 'Sesion de OneDrive caducada: desconecta y vuelve a conectar' : resp.status===404 ? 'No encuentro el archivo en OneDrive (revisa el enlace)' : 'OneDrive: '+m);
+    }
     const data = await resp.json();
     const rows = data.values || [];
     // Parse rows: col0=JOUR, col1=MOIS, col2=MAGASIN, col17=TOTAL
@@ -1116,8 +1120,12 @@ async function syncToExcel() {
       `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/workbook/worksheets/Caja/usedRange`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
+    if (!rangeResp.ok) {
+      let m = rangeResp.status; try { const er = await rangeResp.json(); m = er.error?.message || m; } catch(_){}
+      throw new Error(rangeResp.status===401 ? 'Sesion de OneDrive caducada: desconecta y vuelve a conectar' : rangeResp.status===404 ? 'No encuentro el archivo en OneDrive (revisa el enlace)' : 'OneDrive: '+m);
+    }
     const rangeData = await rangeResp.json();
-    const rows = rangeData.values;
+    const rows = rangeData.values || [];
 
 
     let syncCount = 0;
