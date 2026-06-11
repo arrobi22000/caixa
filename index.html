@@ -748,17 +748,25 @@ function getCompMonth(){
   return document.getElementById('comp-month')?.value || new Date().toISOString().slice(0,7);
 }
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-async function gfetch(url, opts, tries=6){
+async function gfetch(url, opts, tries=7){
+  const TRANSIENT = [429, 500, 502, 503, 504];
   for(let i=0;i<tries;i++){
-    let r = await fetch(url, opts);
-    if(r.status===429 || r.status===503){
+    let r;
+    try {
+      r = await fetch(url, opts);
+    } catch(netErr) {
+      // fallo de red puntual: esperar y reintentar
+      if(i===tries-1) throw new Error('Sin conexion con OneDrive: reintenta en 1 min');
+      await sleep(Math.min(Math.pow(2,i),20)*1000); continue;
+    }
+    if(TRANSIENT.includes(r.status)){
       const ra=parseInt(r.headers.get('Retry-After')||'');
       const wait=(isNaN(ra)?Math.min(Math.pow(2,i),20):ra)*1000;
       await sleep(wait); continue;
     }
     return r;
   }
-  throw new Error('OneDrive saturado (429): espera 1 min y reintenta');
+  throw new Error('OneDrive no responde (429/503/504): espera 1 min y vuelve a sincronizar');
 }
 
 window.EXCEL_2026 = null;
