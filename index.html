@@ -357,11 +357,17 @@ function updateClock(){
   document.getElementById('date-badge').textContent=days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();
 }
 updateClock();setInterval(updateClock,10000);
-document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
+function nextDateForStore(store){
+  const ds=entries.filter(e=>e.magasin===store&&e.date).map(e=>e.date).sort();
+  if(!ds.length) return new Date().toISOString().slice(0,10);
+  const d=new Date(ds[ds.length-1]+'T12:00:00'); d.setDate(d.getDate()+1);
+  return d.toISOString().slice(0,10);
+}
+document.getElementById('f-date').value=nextDateForStore(currentStore);
 document.getElementById('email-addr').value=localStorage.getItem('caixa_email')||'';
 
 function saveEmail(){localStorage.setItem('caixa_email',document.getElementById('email-addr').value)}
-function setStore(name,el){currentStore=name;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
+function setStore(name,el){currentStore=name;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');if(!editingId)document.getElementById('f-date').value=nextDateForStore(name);}
 function v(id){return parseFloat(document.getElementById(id).value)||0}
 function fmt(n){return n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 
